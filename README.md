@@ -24,6 +24,6 @@ npm run dev
 
 ## Soporte
 
-Escríbeme a nico@nico.com o directamente por la comunidad
+Escríbeme a nico@nicocmw.com o directamente por la comunidad
 
 IMPORTANTE: iremos mejorando la plantilla con el tiempo, esto es la version 1.0, a partir de aquí todo es construir, cualquier detalle a añadir o feedback encantado de recibirlo!
