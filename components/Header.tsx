@@ -1,181 +1,39 @@
-"use client";
-
-import { useState, useEffect } from "react";
-import type { JSX } from "react";
-import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import ButtonSignin from "./ButtonSignin";
 import logo from "@/app/icon.png";
 import config from "@/config";
 
-const links: {
-  href: string;
-  label: string;
-}[] = [
-  {
-    href: "/#features",
-    label: "Que incluye",
-  },
-  {
-    href: "/#pricing",
-    label: "Precios",
-  },
-  {
-    href: "/#faq",
-    label: "FAQ",
-  },
-];
-
-const cta: JSX.Element = <ButtonSignin extraStyle="btn-primary" />;
-
-// Un header con un logo a la izquierda, enlaces en el centro (como Precios, etc.), y un CTA (como Empezar o Login) a la derecha.
-// El header es responsive, y en movil, los enlaces se ocultan detras de un boton hamburguesa.
+// Header minimo de la landing de validacion de Vega: solo marca y un CTA
+// hacia /explorar -- sin enlaces de producto/pricing ni login, que no
+// existen en esta landing (ver app/page.tsx).
 const Header = () => {
-  const searchParams = useSearchParams();
-  const [isOpen, setIsOpen] = useState<boolean>(false);
-
-  // setIsOpen(false) cuando la ruta cambia (es decir: cuando el usuario hace clic en un enlace en movil)
-  useEffect(() => {
-    setIsOpen(false);
-  }, [searchParams]);
-
   return (
     <header className="bg-base-200">
       <nav
         className="container flex items-center justify-between px-8 py-4 mx-auto"
         aria-label="Global"
       >
-        {/* Tu logo/nombre en pantallas grandes */}
-        <div className="flex lg:flex-1">
-          <Link
-            className="flex items-center gap-2 shrink-0 "
-            href="/"
-            title={`Inicio de ${config.appName}`}
-          >
-            <Image
-              src={logo}
-              alt={`Logo de ${config.appName}`}
-              className="w-8"
-              placeholder="blur"
-              priority={true}
-              width={32}
-              height={32}
-            />
-            <span className="font-extrabold text-lg">{config.appName}</span>
-          </Link>
-        </div>
-        {/* Boton hamburguesa para abrir menu en movil */}
-        <div className="flex lg:hidden">
-          <button
-            type="button"
-            className="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5"
-            onClick={() => setIsOpen(true)}
-          >
-            <span className="sr-only">Abrir menu principal</span>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-              className="w-6 h-6 text-base-content"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
-              />
-            </svg>
-          </button>
-        </div>
-
-        {/* Tus enlaces en pantallas grandes */}
-        <div className="hidden lg:flex lg:justify-center lg:gap-12 lg:items-center">
-          {links.map((link) => (
-            <Link
-              href={link.href}
-              key={link.href}
-              className="link link-hover"
-              title={link.label}
-            >
-              {link.label}
-            </Link>
-          ))}
-        </div>
-
-        {/* CTA en pantallas grandes */}
-        <div className="hidden lg:flex lg:justify-end lg:flex-1">{cta}</div>
-      </nav>
-
-      {/* Menu movil, mostrar/ocultar segun el estado del menu. */}
-      <div className={`relative z-50 ${isOpen ? "" : "hidden"}`}>
-        <div
-          className={`fixed inset-y-0 right-0 z-10 w-full px-8 py-4 overflow-y-auto bg-base-200 sm:max-w-sm sm:ring-1 sm:ring-neutral/10 transform origin-right transition ease-in-out duration-300`}
+        <Link
+          className="flex items-center gap-2 shrink-0"
+          href="/"
+          title={`Inicio de ${config.appName}`}
         >
-          {/* Tu logo/nombre en pantallas pequenas */}
-          <div className="flex items-center justify-between">
-            <Link
-              className="flex items-center gap-2 shrink-0 "
-              title={`Inicio de ${config.appName}`}
-              href="/"
-            >
-              <Image
-                src={logo}
-                alt={`Logo de ${config.appName}`}
-                className="w-8"
-                placeholder="blur"
-                priority={true}
-                width={32}
-                height={32}
-              />
-              <span className="font-extrabold text-lg">{config.appName}</span>
-            </Link>
-            <button
-              type="button"
-              className="-m-2.5 rounded-md p-2.5"
-              onClick={() => setIsOpen(false)}
-            >
-              <span className="sr-only">Cerrar menu</span>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={1.5}
-                stroke="currentColor"
-                className="w-6 h-6"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </button>
-          </div>
+          <Image
+            src={logo}
+            alt={`Logo de ${config.appName}`}
+            className="w-8"
+            placeholder="blur"
+            priority={true}
+            width={32}
+            height={32}
+          />
+          <span className="font-extrabold text-lg">{config.appName}</span>
+        </Link>
 
-          {/* Tus enlaces en pantallas pequenas */}
-          <div className="flow-root mt-6">
-            <div className="py-4">
-              <div className="flex flex-col gap-y-4 items-start">
-                {links.map((link) => (
-                  <Link
-                    href={link.href}
-                    key={link.href}
-                    className="link link-hover"
-                    title={link.label}
-                  >
-                    {link.label}
-                  </Link>
-                ))}
-              </div>
-            </div>
-            <div className="divider"></div>
-            {/* Tu CTA en pantallas pequenas */}
-            <div className="flex flex-col">{cta}</div>
-          </div>
-        </div>
-      </div>
+        <Link href="/explorar" className="btn btn-primary btn-sm sm:btn-md normal-case">
+          Explorar con Vega
+        </Link>
+      </nav>
     </header>
   );
 };

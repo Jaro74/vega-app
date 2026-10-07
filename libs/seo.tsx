@@ -87,7 +87,7 @@ export const renderSchemaTags = () => {
           url: `https://${config.domainName}/`,
           author: {
             "@type": "Person",
-            name: "IA LAB",
+            name: "Vega",
           },
           datePublished: "2024-01-01",
           applicationCategory: "EducationalApplication",

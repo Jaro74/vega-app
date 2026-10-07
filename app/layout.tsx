@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import { Viewport } from "next";
 import { getSEOTags } from "@/libs/seo";
 import ClientLayout from "@/components/LayoutClient";
+import ExperimentBootstrap from "@/components/experiment/ExperimentBootstrap";
 import config from "@/config";
 import "./globals.css";
 
@@ -27,6 +28,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 			className={font.className}
 		>
 			<body>
+				{/* Bootstrap del experimento Vega: crea/recupera anonymous_user_id e identifica en PostHog */}
+				<ExperimentBootstrap />
 				{/* ClientLayout contains all the client wrappers (Crisp chat support, toast messages, tooltips, etc.) */}
 				<ClientLayout>{children}</ClientLayout>
 			</body>

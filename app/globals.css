@@ -99,3 +99,11 @@ progress::-webkit-progress-value {
 .btn {
   text-transform: capitalize !important;
 }
+
+/* Permite desactivar el capitalize global de .btn (arriba) en botones
+   concretos anadiendo tambien la clase normal-case -- mayor especificidad
+   y misma importancia, para ganar con independencia del orden de origen.
+   No cambia ningun otro boton que no incluya normal-case explicitamente. */
+.btn.normal-case {
+  text-transform: none !important;
+}

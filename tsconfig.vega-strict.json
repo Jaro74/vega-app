@@ -1,0 +1,47 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "incremental": false,
+    "plugins": []
+  },
+  "include": [
+    "types/experiment.ts",
+    "types/preview.ts",
+    "types/analytics.ts",
+    "types/api.ts",
+    "types/vega.ts",
+    "types/synastry.ts",
+    "types/index.ts",
+    "libs/experiment/**/*.ts",
+    "libs/validation/**/*.ts",
+    "libs/db/**/*.ts",
+    "libs/analytics/**/*.ts",
+    "libs/places/**/*.ts",
+    "libs/vega/**/*.ts",
+    "libs/openai/**/*.ts",
+    "components/experiment/**/*.ts",
+    "components/experiment/**/*.tsx",
+    "app/api/session/**/*.ts",
+    "app/api/segment/**/*.ts",
+    "app/api/problem/**/*.ts",
+    "app/api/own-profile/**/*.ts",
+    "app/api/partner/**/*.ts",
+    "app/api/places/**/*.ts",
+    "app/api/preview/**/*.ts",
+    "app/api/priced-intent/**/*.ts",
+    "app/api/waitlist/**/*.ts",
+    "app/explorar/**/*.tsx",
+    "app/flow/**/*.tsx",
+    "middleware.ts",
+    "tests/unit/**/*.ts",
+    "tests/integration/**/*.ts",
+    "tests/e2e/**/*.ts",
+    "vitest.config.mts",
+    "playwright.config.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}

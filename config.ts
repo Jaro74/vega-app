@@ -9,10 +9,9 @@ const themes = {
 
 const config = {
   // REQUERIDO
-  appName: "IA LAB",
+  appName: "Vega",
   // REQUERIDO: una breve descripcion de tu app para etiquetas SEO (puede sobrescribirse)
-  appDescription:
-    "El kit definitivo para lanzar tu idea con IA",
+  appDescription: "Explora lecturas astrológicas personalizadas con Vega.",
   // REQUERIDO (sin https://, sin barra al final, solo el dominio)
   domainName: "ialab.dev",
   crisp: {

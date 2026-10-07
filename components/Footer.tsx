@@ -3,17 +3,17 @@ import Image from "next/image";
 import config from "@/config";
 import logo from "@/app/icon.png";
 
-// Agrega el Footer al final de tu landing page y mas.
-// El enlace de soporte esta conectado al archivo config.js. Si no hay config.resend.supportEmail, el enlace no se mostrara.
-
+// Footer minimo de la landing de validacion de Vega: solo marca y los
+// enlaces legales -- sin soporte, precios ni blog heredados del
+// boilerplate (ninguno existe hoy para Vega).
 const Footer = () => {
   return (
     <footer className="bg-base-200 border-t border-base-content/10">
-      <div className="max-w-7xl mx-auto px-8 py-24">
-        <div className=" flex lg:items-start md:flex-row md:flex-nowrap flex-wrap flex-col">
-          <div className="w-64 flex-shrink-0 md:mx-0 mx-auto text-center md:text-left">
+      <div className="max-w-7xl mx-auto px-8 py-16">
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-10">
+          <div className="text-center md:text-left">
             <Link
-              href="/#"
+              href="/"
               aria-current="page"
               className="flex gap-2 justify-center md:justify-start items-center"
             >
@@ -38,45 +38,18 @@ const Footer = () => {
               reservados
             </p>
           </div>
-          <div className="flex-grow flex flex-wrap justify-center -mb-10 md:mt-0 mt-10 text-center">
-            <div className="lg:w-1/3 md:w-1/2 w-full px-4">
-              <div className="footer-title font-semibold text-base-content tracking-widest text-sm md:text-left mb-3">
-                ENLACES
-              </div>
 
-              <div className="flex flex-col justify-center items-center md:items-start gap-2 mb-10 text-sm">
-                {config.resend.supportEmail && (
-                  <a
-                    href={`mailto:${config.resend.supportEmail}`}
-                    target="_blank"
-                    className="link link-hover"
-                    aria-label="Contactar Soporte"
-                  >
-                    Soporte
-                  </a>
-                )}
-                <Link href="/#pricing" className="link link-hover">
-                  Precios
-                </Link>
-                <Link href="/blog" className="link link-hover">
-                  Blog
-                </Link>
-              </div>
+          <div className="text-center md:text-left">
+            <div className="footer-title font-semibold text-base-content tracking-widest text-sm mb-3">
+              LEGAL
             </div>
-
-            <div className="lg:w-1/3 md:w-1/2 w-full px-4">
-              <div className="footer-title font-semibold text-base-content tracking-widest text-sm md:text-left mb-3">
-                LEGAL
-              </div>
-
-              <div className="flex flex-col justify-center items-center md:items-start gap-2 mb-10 text-sm">
-                <Link href="/tos" className="link link-hover">
-                  Terminos de servicio
-                </Link>
-                <Link href="/privacy-policy" className="link link-hover">
-                  Politica de privacidad
-                </Link>
-              </div>
+            <div className="flex flex-col items-center md:items-start gap-2 text-sm">
+              <Link href="/tos" className="link link-hover">
+                Términos de servicio
+              </Link>
+              <Link href="/privacy-policy" className="link link-hover">
+                Política de privacidad
+              </Link>
             </div>
           </div>
         </div>
