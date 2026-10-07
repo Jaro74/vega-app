@@ -170,6 +170,7 @@ test("paywall nunca aparece cuando la preview es insufficient_data (segmento B m
 
   // Solo fecha, sin lugar: precision "minimal" -> insufficient_data.
   await page.locator('input[type="date"]').fill("1988-03-02");
+  await page.getByRole("checkbox", { name: /Declaro que dispongo de estos datos/ }).check();
   await page.getByRole("button", { name: "Continuar" }).click();
 
   await expect(page.getByRole("heading", { name: "Necesitamos algo más de información" })).toBeVisible();

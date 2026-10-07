@@ -33,6 +33,7 @@ export default function PartnerStep({ flowAttemptId, capture, onComplete }: Part
   const [birthTime, setBirthTime] = useState("");
   const [timeError, setTimeError] = useState<string | null>(null);
   const [place, setPlace] = useState<PlaceSearchResult | null>(null);
+  const [thirdPartyDeclarationChecked, setThirdPartyDeclarationChecked] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
@@ -154,9 +155,38 @@ export default function PartnerStep({ flowAttemptId, capture, onComplete }: Part
 
       <PlaceAutocomplete label="Lugar de nacimiento (opcional)" selectedPlace={place} onSelect={setPlace} />
 
+      {/* Salvaguarda de datos de terceros (VEGA_Base_Juridica_Segmento_B_v1.md,
+          bloque 7): medida de reduccion de riesgo frente al usuario, no una
+          base juridica ni un sustituto de las obligaciones del art. 14 -- por
+          eso el texto secundario lo aclara de forma explicita y por eso no se
+          usa la palabra "consentimiento" en ningun punto de este bloque. */}
+      <div className="form-control">
+        <label className="label cursor-pointer justify-start gap-3 items-start">
+          <input
+            type="checkbox"
+            className="checkbox mt-1"
+            checked={thirdPartyDeclarationChecked}
+            onChange={(event) => setThirdPartyDeclarationChecked(event.target.checked)}
+          />
+          <span className="label-text">
+            Declaro que dispongo de estos datos de forma legítima según mi conocimiento y que entiendo
+            que no debo introducir información de terceros sin una justificación adecuada.
+          </span>
+        </label>
+        <p className="text-xs opacity-70 pl-9">
+          Esta declaración no constituye la base jurídica del tratamiento por Vega ni sustituye las
+          obligaciones de información del art. 14.
+        </p>
+      </div>
+
       {submitError && <p className="text-error text-sm">{submitError}</p>}
 
-      <button type="button" className="btn btn-primary" disabled={submitting} onClick={handleSubmit}>
+      <button
+        type="button"
+        className="btn btn-primary"
+        disabled={submitting || !thirdPartyDeclarationChecked}
+        onClick={handleSubmit}
+      >
         {submitting ? "Guardando..." : "Continuar"}
       </button>
     </div>

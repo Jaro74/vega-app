@@ -40,6 +40,7 @@ test("preview de segmento B (full): insight, evidencia relacional y CTA visibles
   await page.getByRole("checkbox", { name: "Conozco su hora de nacimiento" }).check();
   await page.locator('input[type="time"]').fill("09:15");
   await selectPlace(page, "Valencia", "Valencia — Comunidad Valenciana — España");
+  await page.getByRole("checkbox", { name: /Declaro que dispongo de estos datos/ }).check();
   await page.getByRole("button", { name: "Continuar" }).click();
 
   await expect(page.getByRole("heading", { name: "Tu primera lectura" })).toBeVisible();
@@ -56,6 +57,7 @@ test("preview de segmento B (partial): sin hora de la otra persona, preview igua
 
   await page.locator('input[type="date"]').fill("1988-03-02");
   await selectPlace(page, "Valencia", "Valencia — Comunidad Valenciana — España");
+  await page.getByRole("checkbox", { name: /Declaro que dispongo de estos datos/ }).check();
   await page.getByRole("button", { name: "Continuar" }).click();
 
   await expect(page.getByRole("heading", { name: "Tu primera lectura" })).toBeVisible();
@@ -70,6 +72,7 @@ test("segmento B minimal: mensaje de datos insuficientes, permite volver a añad
   // Solo fecha, sin lugar: Vega nunca puede calcular una sinastria sin
   // timezone/coordenadas (precision "minimal").
   await page.locator('input[type="date"]').fill("1988-03-02");
+  await page.getByRole("checkbox", { name: /Declaro que dispongo de estos datos/ }).check();
   await page.getByRole("button", { name: "Continuar" }).click();
 
   await expect(page.getByRole("heading", { name: "Necesitamos algo más de información" })).toBeVisible();
@@ -86,6 +89,7 @@ test("segmento B minimal: mensaje de datos insuficientes, permite volver a añad
   await expect(page.getByRole("heading", { name: "Datos de la otra persona" })).toBeVisible();
   await page.locator('input[type="date"]').fill("1988-03-02");
   await selectPlace(page, "Valencia", "Valencia — Comunidad Valenciana — España");
+  await page.getByRole("checkbox", { name: /Declaro que dispongo de estos datos/ }).check();
   await page.getByRole("button", { name: "Continuar" }).click();
 
   await expect(page.getByRole("heading", { name: "Tu primera lectura" })).toBeVisible();
@@ -114,6 +118,7 @@ test("error de generacion en segmento B: muestra Reintentar y recupera sin perde
   await page.getByRole("checkbox", { name: "Conozco su hora de nacimiento" }).check();
   await page.locator('input[type="time"]').fill("09:15");
   await selectPlace(page, "Valencia", "Valencia — Comunidad Valenciana — España");
+  await page.getByRole("checkbox", { name: /Declaro que dispongo de estos datos/ }).check();
   await page.getByRole("button", { name: "Continuar" }).click();
 
   await expect(
@@ -124,4 +129,40 @@ test("error de generacion en segmento B: muestra Reintentar y recupera sin perde
 
   await expect(page.getByRole("heading", { name: "Tu primera lectura" })).toBeVisible();
   expect(requestCount).toBeGreaterThanOrEqual(2);
+});
+
+// Salvaguarda de datos de terceros (VEGA_Base_Juridica_Segmento_B_v1.md,
+// bloque 7): medida de reduccion de riesgo frente al usuario, no una base
+// juridica ni un sustituto del art. 14 -- solo verifica el gating de UI,
+// nunca cambia la llamada real a /api/partner.
+test("declaracion de datos de terceros: texto visible y Continuar deshabilitado hasta marcar el checkbox", async ({
+  page,
+}) => {
+  await startSegmentBUpToPartnerIntro(page);
+
+  await expect(
+    page.getByText(
+      "Declaro que dispongo de estos datos de forma legítima según mi conocimiento y que entiendo que no debo introducir información de terceros sin una justificación adecuada."
+    )
+  ).toBeVisible();
+  await expect(
+    page.getByText(
+      "Esta declaración no constituye la base jurídica del tratamiento por Vega ni sustituye las obligaciones de información del art. 14."
+    )
+  ).toBeVisible();
+
+  await page.locator('input[type="date"]').fill("1988-03-02");
+  await selectPlace(page, "Valencia", "Valencia — Comunidad Valenciana — España");
+
+  const continueButton = page.getByRole("button", { name: "Continuar" });
+  const declarationCheckbox = page.getByRole("checkbox", { name: /Declaro que dispongo de estos datos/ });
+
+  await expect(declarationCheckbox).not.toBeChecked();
+  await expect(continueButton).toBeDisabled();
+
+  await declarationCheckbox.check();
+  await expect(continueButton).toBeEnabled();
+
+  await continueButton.click();
+  await expect(page.getByRole("heading", { name: "Tu primera lectura" })).toBeVisible();
 });

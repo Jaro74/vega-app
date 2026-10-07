@@ -264,6 +264,7 @@ test("PostHog no recibe datos de la segunda persona durante un journey B complet
   await page.locator('input[type="time"]').fill("09:15");
   await page.getByLabel(/Lugar de nacimiento/).fill("Valencia");
   await page.getByRole("button", { name: "Valencia — Comunidad Valenciana — España", exact: true }).click();
+  await page.getByRole("checkbox", { name: /Declaro que dispongo de estos datos/ }).check();
   await page.getByRole("button", { name: "Continuar" }).click();
 
   // Sprint 3B: full/full pasa automaticamente a generar y mostrar la

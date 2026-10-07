@@ -90,17 +90,16 @@ El TJUE, en *Meta Platforms y otros* (C-252/21, 4 de julio de 2023), confirmó q
 
 ## 8. Salvaguardas
 
-**[HECHO] Salvaguardas actuales:** ausencia de nombre/email/teléfono de la segunda persona; minimización a 4 campos; borrado inmediato + fallback de 1h (reducido desde 24h el 2026-10-07); derivado limitado a 24h (reducido desde 30 días el 2026-10-07); separación entre proveedores; no envío de datos de nacimiento a PostHog; canal de borrado existente; tráfico real suspendido.
+**[HECHO] Salvaguardas actuales:** ausencia de nombre/email/teléfono de la segunda persona; minimización a 4 campos; borrado inmediato + fallback de 1h (reducido desde 24h el 2026-10-07); derivado limitado a 24h (reducido desde 30 días el 2026-10-07); separación entre proveedores; no envío de datos de nacimiento a PostHog; canal de borrado existente; tráfico real suspendido; **declaración del usuario sobre datos de terceros, implementada el 2026-10-07** (`components/experiment/flow/PartnerStep.tsx`, checkbox obligatorio antes de continuar): *"Declaro que dispongo de estos datos de forma legítima según mi conocimiento y que entiendo que no debo introducir información de terceros sin una justificación adecuada."* + *"Esta declaración no constituye la base jurídica del tratamiento por Vega ni sustituye las obligaciones de información del art. 14."* Es una medida de reducción de riesgo frente al usuario, no una pieza que resuelva la base jurídica o la obligación de información hacia la segunda persona.
 
 **[INTERPRETACIÓN] Salvaguardas adicionales propuestas, no implementadas:**
 
-- **Declaración del usuario:** *"El usuario declara que dispone de esos datos de forma legítima según su conocimiento y que entiende que no debe introducir información de terceros sin una justificación adecuada."* **Esta declaración no constituye la base jurídica del tratamiento por Vega ni sustituye las obligaciones de información del art. 14** — es una medida de reducción de riesgo frente al usuario, no una pieza que resuelva la base jurídica o la obligación de información hacia la segunda persona.
 - Aviso contextual antes de introducir datos de un tercero, explicando brevemente qué se hace con ellos y durante cuánto tiempo.
 - Aviso o restricción en el campo de texto libre para reducir el riesgo del art. 9 identificado en el bloque 6.
 - Reevaluar si el plazo del derivado podría reducirse sin perjudicar la medición del experimento — **ya implementado**: reducido de 30 días a 24 horas el 2026-10-07 (ver `VEGA_Base_Juridica_Segmento_B_v1.md`).
 - Evaluar si la precisión exacta de las coordenadas es estrictamente necesaria para el cálculo.
 
-No se implementa ninguna de estas propuestas en este momento.
+De estas propuestas, ninguna de las restantes (aviso contextual sobre terceros; aviso/restricción del texto libre; precisión exacta de coordenadas) está implementada en este momento.
 
 ---
 

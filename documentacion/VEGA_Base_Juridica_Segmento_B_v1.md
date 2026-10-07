@@ -134,7 +134,7 @@ Factores favorables: minimización del núcleo de datos; ausencia de identificad
 
 ## 7. Declaración del usuario
 
-**[INTERPRETACIÓN]** Se mantiene la declaración ya evaluada: *"El usuario declara que dispone de esos datos de forma legítima según su conocimiento y que entiende que no debe introducir información de terceros sin una justificación adecuada."* + *"Esta declaración no constituye la base jurídica del tratamiento por Vega ni sustituye las obligaciones de información del art. 14."* Su valor es de mitigación de riesgo y evidencia de buena fe — no es base jurídica, no sustituye el art. 14, y no mejora por sí sola el factor de expectativas razonables de la segunda persona, que es independiente de lo que el usuario declare internamente a Vega.
+**[HECHO] Implementada el 2026-10-07** en `components/experiment/flow/PartnerStep.tsx` (pantalla `form` del Segmento B, checkbox obligatorio tras los campos de fecha/hora/lugar de la otra persona y antes de poder continuar): *"Declaro que dispongo de estos datos de forma legítima según mi conocimiento y que entiendo que no debo introducir información de terceros sin una justificación adecuada."* + *"Esta declaración no constituye la base jurídica del tratamiento por Vega ni sustituye las obligaciones de información del art. 14."* Su valor es de mitigación de riesgo y evidencia de buena fe — no es base jurídica, no sustituye el art. 14, y no mejora por sí sola el factor de expectativas razonables de la segunda persona, que es independiente de lo que el usuario declare internamente a Vega.
 
 ---
 
@@ -146,7 +146,7 @@ Factores favorables: minimización del núcleo de datos; ausencia de identificad
 
 ## 9. Alternativas de diseño
 
-**[INTERPRETACIÓN]** Se mantienen como mejoras evaluadas: hora opcional (ya implementada); reducir precisión geográfica (pendiente de la prueba técnica del bloque 5.B); eliminar/reducir texto libre sobre la segunda persona (no implementado); advertencia expresa sobre categorías especiales (no implementado); reducir retención del derivado (implementada a 24h el 2026-10-07); declaración del usuario (ya evaluada, bloque 7); aviso contextual sobre terceros (no implementado).
+**[INTERPRETACIÓN]** Se mantienen como mejoras evaluadas: hora opcional (ya implementada); reducir precisión geográfica (pendiente de la prueba técnica del bloque 5.B); eliminar/reducir texto libre sobre la segunda persona (no implementado); advertencia expresa sobre categorías especiales (no implementado); reducir retención del derivado (implementada a 24h el 2026-10-07); declaración del usuario (implementada el 2026-10-07, bloque 7); aviso contextual sobre terceros (no implementado).
 
 ---
 

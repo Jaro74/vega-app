@@ -121,6 +121,7 @@ test("Journey B full: perfil propio + partner con fecha, hora y lugar -> partner
   await page.getByRole("checkbox", { name: "Conozco su hora de nacimiento" }).check();
   await page.locator('input[type="time"]').fill("09:15");
   await selectPlace(page, "Valencia", "Valencia — Comunidad Valenciana — España");
+  await page.getByRole("checkbox", { name: /Declaro que dispongo de estos datos/ }).check();
 
   const [partnerResponse] = await Promise.all([
     page.waitForResponse((response) => response.url().includes("/api/partner")),
@@ -157,6 +158,7 @@ test("Journey B partial: partner con fecha y lugar sin hora -> partnerPrecision 
   await page.getByRole("button", { name: "Añadir los datos que conozco" }).click();
   await page.locator('input[type="date"]').fill("1988-03-02");
   await selectPlace(page, "Sevilla", "Sevilla — Andalucía — España");
+  await page.getByRole("checkbox", { name: /Declaro que dispongo de estos datos/ }).check();
 
   const [partnerResponse] = await Promise.all([
     page.waitForResponse((response) => response.url().includes("/api/partner")),
@@ -190,6 +192,7 @@ test("Journey B minimal: partner solo con fecha -> partnerPrecision minimal", as
 
   await page.getByRole("button", { name: "Añadir los datos que conozco" }).click();
   await page.locator('input[type="date"]').fill("1988-03-02");
+  await page.getByRole("checkbox", { name: /Declaro que dispongo de estos datos/ }).check();
 
   const [partnerResponse] = await Promise.all([
     page.waitForResponse((response) => response.url().includes("/api/partner")),
