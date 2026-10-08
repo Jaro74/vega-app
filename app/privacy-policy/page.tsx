@@ -553,7 +553,6 @@ const PrivacyPolicy = () => {
               <li>pagos;</li>
               <li>facturación;</li>
               <li>datos persistentes de nacimiento;</li>
-              <li>datos de terceros;</li>
               <li>soporte;</li>
               <li>comunicaciones comerciales;</li>
             </ul>
