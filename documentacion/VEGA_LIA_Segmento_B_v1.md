@@ -97,9 +97,9 @@ El TJUE, en *Meta Platforms y otros* (C-252/21, 4 de julio de 2023), confirmó q
 - Aviso contextual antes de introducir datos de un tercero, explicando brevemente qué se hace con ellos y durante cuánto tiempo.
 - Aviso o restricción en el campo de texto libre para reducir el riesgo del art. 9 identificado en el bloque 6.
 - Reevaluar si el plazo del derivado podría reducirse sin perjudicar la medición del experimento — **ya implementado**: reducido de 30 días a 24 horas el 2026-10-07 (ver `VEGA_Base_Juridica_Segmento_B_v1.md`).
-- Evaluar si la precisión exacta de las coordenadas es estrictamente necesaria para el cálculo.
+- Evaluar si la precisión exacta de las coordenadas es estrictamente necesaria para el cálculo — **evaluado y decidido el 2026-10-08**: prueba técnica en 3 ciudades (Madrid, Reykjavik, Buenos Aires) con datos sintéticos contra Railway, en modo full y partial (ver `VEGA_Base_Juridica_Segmento_B_v1.md`, bloque 5.B). Decisión: redondear latitud/longitud a 2 decimales, misma regla en full y partial; `timezoneId` se mantiene sin cambios por resultar obligatorio, verificado empíricamente, en ambos modos. **Implementado en código el 2026-10-08** (`libs/experiment/onboarding-service.ts`, función `submitPartner`, helper `roundPartnerCoordinate`), cubierto por tests (`tests/unit/onboarding-service.test.ts`); pendiente de despliegue y verificación en producción.
 
-De estas propuestas, ninguna de las restantes (aviso contextual sobre terceros; aviso/restricción del texto libre; precisión exacta de coordenadas) está implementada en este momento.
+De estas propuestas, la precisión geográfica ya fue evaluada, decidida e implementada en código el 2026-10-08, cubierta por tests y pendiente de despliegue y verificación en producción (ver `VEGA_Base_Juridica_Segmento_B_v1.md`); las dos restantes (aviso contextual sobre terceros; aviso/restricción del texto libre) siguen sin evaluar ni implementar.
 
 ---
 

@@ -118,6 +118,25 @@ describe("onboarding-service", () => {
       expect(updatedAttempt?.completedAt).not.toBeNull();
     });
 
+    // No afectado por el redondeo a 2 decimales aplicado solo a la
+    // segunda persona del Segmento B (submitPartner) el 2026-10-08: el
+    // perfil propio debe conservar la precision completa del dataset.
+    it("conserva la precision completa del dataset (no se ve afectado por el redondeo de submitPartner)", async () => {
+      const { attempt, user } = await createAttempt("A");
+
+      await submitOwnProfile(repository, {
+        flowAttemptId: attempt.id,
+        birthDate: "1990-05-12",
+        birthTimeKnown: true,
+        birthTime: "14:35",
+        placeId: MADRID_PLACE_ID,
+      });
+
+      const profile = await repository.getOwnBirthProfileByUser(user.id);
+      expect(profile?.latitude).toBe(40.4165);
+      expect(profile?.longitude).toBe(-3.70256);
+    });
+
     it("segmento A: precision limited sin hora, nunca inventa un valor de birthTime", async () => {
       const { attempt, user } = await createAttempt("A");
 
@@ -212,6 +231,26 @@ describe("onboarding-service", () => {
       const updatedAttempt = await repository.getFlowAttemptById(attempt.id);
       expect(updatedAttempt?.partnerPrecision).toBe("full");
       expect(updatedAttempt?.completedAt).not.toBeNull();
+    });
+
+    // Minimizacion geografica de la segunda persona (VEGA_Base_Juridica_
+    // Segmento_B_v1.md, bloque 5.B, prueba tecnica 2026-10-08): partner_input
+    // nunca debe persistir la precision original de 4-5 decimales del
+    // dataset para la segunda persona.
+    it("redondea lat/lon de la segunda persona a 2 decimales a partir de la precision original del dataset", async () => {
+      const { attempt } = await createAttempt("B");
+
+      await submitPartner(repository, {
+        flowAttemptId: attempt.id,
+        birthDate: "1988-03-02",
+        birthTimeKnown: true,
+        birthTime: "09:15",
+        placeId: MADRID_PLACE_ID,
+      });
+
+      const partnerInput = await repository.getPartnerInputByFlowAttempt(attempt.id);
+      expect(partnerInput?.latitude).toBe(40.42);
+      expect(partnerInput?.longitude).toBe(-3.7);
     });
 
     it("partial: fecha + lugar sin hora -> partnerPrecision partial, nunca inventa hora", async () => {

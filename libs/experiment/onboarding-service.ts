@@ -129,6 +129,16 @@ export interface SubmitPartnerResult {
   analysisPossible: boolean;
 }
 
+// Redondeo deliberado a 2 decimales (~1,1 km) exclusivamente para la
+// segunda persona del Segmento B (VEGA_Base_Juridica_Segmento_B_v1.md,
+// bloque 5.B, prueba tecnica 2026-10-08): validado en full y partial, en
+// 3 ciudades de latitud muy distinta, sin cambios estructurales en la
+// evidencia de Vega. No se usa en submitOwnProfile (perfil propio), que
+// sigue con la precision del dataset sin cambios.
+function roundPartnerCoordinate(value: number): number {
+  return Math.round(value * 100) / 100;
+}
+
 // Solo aplica a B (VEGA_Fase_4C, seccion D-F). El nivel de precision lo
 // decide siempre el servidor via derivePartnerPrecision, nunca el
 // navegador. Idempotente por unique(flow_attempt_id) en partner_input.
@@ -162,8 +172,8 @@ export async function submitPartner(
       ? {
           placeLabel: place.name,
           countryCode: place.countryCode,
-          latitude: place.latitude,
-          longitude: place.longitude,
+          latitude: roundPartnerCoordinate(place.latitude),
+          longitude: roundPartnerCoordinate(place.longitude),
           timezoneId: place.timezoneId,
         }
       : null,
