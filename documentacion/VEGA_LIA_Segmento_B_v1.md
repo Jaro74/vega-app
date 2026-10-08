@@ -36,7 +36,7 @@ Superado para el núcleo estructurado de datos de nacimiento (minimización ya a
 
 ## 4. Test de ponderación
 
-**[INTERPRETACIÓN]** Factores favorables al responsable: minimización, retención, pseudonimización, ausencia de identificadores directos en todos los proveedores. Factor desfavorable, y el más débil del conjunto: la segunda persona no tiene relación con Vega, no puede razonablemente esperar ese tratamiento (Recital 47 RGPD), y no tiene vía práctica de conocerlo. El resultado de la ponderación no es unívoco — ver conclusión en el bloque 9.
+**[INTERPRETACIÓN]** Factores favorables al responsable: minimización, retención, pseudonimización, ausencia de identificadores directos en todos los proveedores. Factor adverso que se mantiene: la segunda persona no tiene relación con Vega ni motivos claros para esperar ese tratamiento — para este caso, la evaluación conforme al Recital 47 RGPD atiende al momento y contexto en que Vega obtiene y trata indirectamente esos datos a través del usuario, y a la ausencia de relación con la segunda persona, no a la vía por la que el usuario obtuvo originalmente esos datos. Este factor se pondera dentro de un balance global ya cerrado como favorable, con riesgo residual moderado aceptado y documentado — ver conclusión en el bloque 9 y `VEGA_Base_Juridica_Segmento_B_v1.md` bloque 5.C.
 
 ---
 
@@ -94,26 +94,28 @@ El TJUE, en *Meta Platforms y otros* (C-252/21, 4 de julio de 2023), confirmó q
 
 **[INTERPRETACIÓN] Salvaguardas adicionales propuestas, no implementadas:**
 
-- Aviso contextual antes de introducir datos de un tercero, explicando brevemente qué se hace con ellos y durante cuánto tiempo.
+- Aviso contextual dentro de Vega al usuario que introduce los datos de un tercero, explicando brevemente qué se hace con ellos y durante cuánto tiempo — lo recibe el usuario, no la segunda persona; no implementado; no evaluado como salvaguarda del factor de expectativas razonables, al no llegar a la segunda persona.
+- Aviso vía el usuario a la segunda persona, es decir, pedir/recomendar al usuario que informe a esa persona de que sus datos se usarán para la sinastría — evaluado el 2026-10-08: recomendable, no necesario para sostener el art. 6.1.f (`VEGA_Base_Juridica_Segmento_B_v1.md`, bloque 5.C); no implementado.
+- Canal público de ejercicio de derechos/oposición — facilita el ejercicio de derechos si la segunda persona llega a conocer o sospechar que sus datos han sido tratados, pero no resuelve por sí mismo la ausencia inicial de conocimiento — evaluado el 2026-10-08: salvaguarda de gobernanza y ejercicio de derechos, no una solución al factor de expectativas razonables; no implementado.
 - Aviso o restricción en el campo de texto libre para reducir el riesgo del art. 9 identificado en el bloque 6.
 - Reevaluar si el plazo del derivado podría reducirse sin perjudicar la medición del experimento — **ya implementado**: reducido de 30 días a 24 horas el 2026-10-07 (ver `VEGA_Base_Juridica_Segmento_B_v1.md`).
 - Evaluar si la precisión exacta de las coordenadas es estrictamente necesaria para el cálculo — **evaluado y decidido el 2026-10-08**: prueba técnica en 3 ciudades (Madrid, Reykjavik, Buenos Aires) con datos sintéticos contra Railway, en modo full y partial (ver `VEGA_Base_Juridica_Segmento_B_v1.md`, bloque 5.B). Decisión: redondear latitud/longitud a 2 decimales, misma regla en full y partial; `timezoneId` se mantiene sin cambios por resultar obligatorio, verificado empíricamente, en ambos modos. **Implementado en código el 2026-10-08** (`libs/experiment/onboarding-service.ts`, función `submitPartner`, helper `roundPartnerCoordinate`), cubierto por tests (`tests/unit/onboarding-service.test.ts`) y **desplegado y verificado en producción**: ejecución real del Segmento B con `?test=1`, Railway devolvió `status: "ok"` y generó `allowed_evidence`/la lectura correctamente con las coordenadas ya redondeadas, sin errores ni degradación funcional.
 
-De estas propuestas, la precisión geográfica ya fue evaluada, decidida, implementada en código y verificada en producción el 2026-10-08 (ver `VEGA_Base_Juridica_Segmento_B_v1.md`); las dos restantes (aviso contextual sobre terceros; aviso/restricción del texto libre) siguen sin evaluar ni implementar.
+De estas propuestas, la precisión geográfica ya fue evaluada, decidida, implementada en código y verificada en producción el 2026-10-08 (ver `VEGA_Base_Juridica_Segmento_B_v1.md`); el aviso vía el usuario a la segunda persona y el canal público de derechos ya fueron evaluados y clasificados el mismo día (recomendable no necesario; salvaguarda de gobernanza, respectivamente), pero no implementados; el aviso contextual dentro de Vega al usuario y el aviso/restricción del texto libre siguen sin evaluar como salvaguarda del factor de expectativas ni implementar.
 
 ---
 
 ## 9. Resultado del LIA
 
-**Resultado provisional: potencialmente defendible bajo interés legítimo, pero no puede considerarse cerrado mientras no se resuelva el cumplimiento del art. 14 y la ponderación relativa a las expectativas razonables de la segunda persona.**
+**Resultado: defendible bajo interés legítimo, con riesgo residual moderado aceptado y documentado respecto a las expectativas razonables de la segunda persona (bloque 4; `VEGA_Base_Juridica_Segmento_B_v1.md` bloque 5.C). No puede considerarse cerrado para habilitar tráfico real mientras no se resuelvan, de forma independiente, el cumplimiento del art. 14 y la identificación efectiva de la futura sociedad responsable del tratamiento.**
 
 Razonamiento:
 
 - El test de finalidad se supera si el interés se formula de forma estrecha (bloque 2).
 - El test de necesidad se supera para el núcleo estructurado; es más débil para el texto libre (bloque 3).
-- El test de ponderación no es unívocamente favorable: los factores técnicos (minimización, retención, pseudonimización) son sólidos, pero el factor de expectativas razonables / ausencia de relación / imposibilidad práctica de conocimiento de la segunda persona sigue sin resolverse y pesa en contra (bloque 4).
+- El test de ponderación resulta favorable en balance global: los factores técnicos (minimización, retención, pseudonimización) son sólidos y ya verificados en producción; el factor de expectativas razonables / ausencia de relación / imposibilidad práctica de conocimiento de la segunda persona se mantiene como adverso, pero queda ponderado dentro de ese balance, con riesgo residual moderado aceptado y documentado (bloque 4).
 - El art. 14 no está hoy satisfecho, y la posible excepción del art. 14.5.b no puede darse por aplicable — su umbral es alto y de interpretación restrictiva según el criterio oficial del EDPB; la ausencia de datos de contacto es un elemento del diseño de minimización, no una demostración de que la excepción se cumpla (bloque 5).
-- Por ello, no se cierra el balancing test como "favorable" ni se presenta esta conclusión como definitiva. Persisten piezas abiertas (art. 14, identidad del responsable, expectativas razonables de la segunda persona) que deben resolverse, en paralelo o con carácter previo, para poder sostener el interés legítimo como base jurídica consolidada antes de tráfico real.
+- El balancing test se cierra como favorable, con riesgo residual moderado aceptado y documentado (ver bloque 4 y `VEGA_Base_Juridica_Segmento_B_v1.md` bloque 5.C). Persisten, de forma completamente independiente, al menos el art. 14 y la identificación efectiva de la futura sociedad responsable del tratamiento, que deben resolverse antes de poder abrir tráfico real.
 
 **Nivel de confianza: moderado.** Basado en fuentes oficiales vigentes, con la cautela expresa de que las EDPB Guidelines 1/2024 sobre el art. 6.1.f permanecen, a la fecha de esta revisión, en versión 1.0 sometida a consulta pública (consulta cerrada el 20-11-2024), sin que se haya localizado una versión final adoptada en la web oficial del EDPB — se citan como tales, no como directrices definitivas.
 
@@ -127,7 +129,7 @@ Razonamiento:
 | Necesidad — datos estructurados | EDPB Guidelines 1/2024 | Superada | Alto | Ninguna acción adicional |
 | Necesidad — texto libre | EDPB Guidelines 1/2024 | Más débil | Moderado | Evaluar restricción/aviso (bloque 8) |
 | Ponderación — minimización/retención/pseudonimización | Recital 47 RGPD; EDPB Guidelines 1/2024 | Favorable al responsable | Alto | Mantener como está |
-| Ponderación — expectativas razonables de la segunda persona | Recital 47 RGPD | Débil — sin relación, sin conocimiento posible | Moderado-alto | Pendiente de asesoría — no vinculado a ninguna de las 6 preguntas originales del segmento B; plantear como cuestión adicional dentro del apartado C del paquete externo |
+| Ponderación — expectativas razonables de la segunda persona | Recital 47 RGPD | Factor adverso mantenido, ponderado dentro de un balance global favorable | Moderado | Condición cerrada el 2026-10-08 (`VEGA_Base_Juridica_Segmento_B_v1.md`, bloque 5.C); riesgo residual moderado aceptado y documentado |
 | Art. 9 — datos estructurados de nacimiento | Art. 9.1 RGPD (lista cerrada) | No constituyen categoría especial | Alto | Ninguna acción |
 | Art. 9 — texto libre | CJEU C-252/21 (*Meta Platforms*) | Riesgo real pero de baja probabilidad por caso | Moderado | Considerar salvaguarda (bloque 8); incluir en consulta a asesoría |
 | Art. 10 — condenas/infracciones penales | Art. 10 RGPD | No aplica — sin hechos que lo activen | Alto | Ninguna acción |
@@ -135,7 +137,7 @@ Razonamiento:
 | Art. 14.5.b — excepción | Art. 14.5.b RGPD; criterio EDPB de interpretación restrictiva/umbral alto | No se concluye que aplica; la ausencia de datos de contacto no la demuestra por sí misma | Bajo | Pendiente de asesoría; no implementar como si ya aplicara |
 | Perfilado (art. 4.4) | Art. 4(4) RGPD | Probable que exista perfilado | Moderado-alto | Ninguna acción específica |
 | Art. 22 — aplicabilidad | Art. 22.1 RGPD; WP251 | No parece aplicable con los hechos actuales; no se afirma ni descarta de forma definitiva | Moderado | Cuestión adicional e independiente de las 6 preguntas del segmento B — plantear por separado si se quiere someter a asesoría |
-| Resultado global del LIA | Síntesis de lo anterior | Potencialmente defendible bajo interés legítimo; no cerrado | Moderado | Resolver art. 14, identidad del responsable y expectativas razonables antes de tráfico real; aplicar al menos una salvaguarda del bloque 8 |
+| Resultado global del LIA | Síntesis de lo anterior | Defendible bajo interés legítimo, riesgo residual moderado aceptado y documentado | Moderado | Resolver, de forma independiente, art. 14 y la identificación efectiva de la futura sociedad responsable del tratamiento antes de tráfico real |
 
 ---
 
