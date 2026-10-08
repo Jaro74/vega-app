@@ -142,6 +142,8 @@ En contra: el escenario no coincide con los supuestos paradigmáticos de WP260/R
 
 **[INTERPRETACIÓN]** Problemas identificados: identificación, verificación, localización del dato, riesgo de revelar información a un tercero equivocado.
 
+**Punto de entrada ya diseñado (2026-10-08):** página pública `/datos-de-terceros` ("¿Crees que alguien ha usado tus datos en Vega?"), enlazada desde la política de privacidad y desde el footer. Contiene el contenido mínimo de este bloque y del bloque 6, y explica la aplicación del art. 14.5.b. Su cierre operativo como medida sustitutiva completa — no solo su contenido — sigue pendiente de que exista el responsable efectivo y el canal de privacidad real (bloque 6); mientras tanto, la propia página lo advierte explícitamente y no muestra ningún email de contacto, ni siquiera un marcador de "pendiente" con forma de email.
+
 **Procedimiento manual mínimo y prudente, conforme al art. 11, al art. 12.2 y a la separación del bloque 5:**
 
 1. Canal de contacto único (el email de privacidad, una vez exista) para cualquier persona que se identifique como la segunda persona de un segmento B.
@@ -166,10 +168,10 @@ Este procedimiento es manual y de bajo volumen esperado — no se propone ningun
 ## 10. Conclusión operativa
 
 **Qué podemos hacer nosotros (sin asesoría externa):**
-- Evaluar formalmente la alternativa de "aviso vía el usuario" antes de descartar la imposibilidad del art. 14.5.b.
-- Documentar internamente el ejercicio de ponderación del art. 14.5.b.
-- Diseñar (no implementar todavía) el procedimiento manual del bloque 8, apoyado en los arts. 11 y 12.2.
-- Preparar la lista de contenidos mínimos del bloque 6.
+- Evaluar formalmente la alternativa de "aviso vía el usuario" antes de descartar la imposibilidad del art. 14.5.b — **hecho**: clasificada como recomendable, no necesaria (ver conclusión de este mismo documento sobre el art. 14.5.b, 2026-10-08).
+- Documentar internamente el ejercicio de ponderación del art. 14.5.b — **hecho**, con confianza moderada: defendible principalmente por esfuerzo desproporcionado.
+- Diseñar e **implementar** el procedimiento manual del bloque 8, apoyado en los arts. 11 y 12.2 — **implementado en código el 2026-10-08** como página pública (`app/datos-de-terceros/page.tsx`), enlazada desde `app/privacy-policy/page.tsx` y `components/Footer.tsx`; su cierre operativo sigue pendiente de la sociedad (bloque 6).
+- Preparar la lista de contenidos mínimos del bloque 6 — **hecho**, publicada en la página anterior.
 - Decidir, como cuestión interna previa, qué lectura se adopta sobre si Railway/OpenAI/Supabase cuentan como "destinatarios" a efectos del art. 14.3.c, documentando los argumentos de ambas lecturas aunque no se resuelva con certeza.
 
 **Qué habría que documentar:**
@@ -200,13 +202,13 @@ Este procedimiento es manual y de bajo volumen esperado — no se propone ningun
 | Destinatarios y art. 14.3.c | Art. 4.9 RGPD; art. 14.3.c RGPD | Abierto: Railway/OpenAI/Supabase podrían contar como destinatarios bajo una lectura amplia del art. 4.9; no resuelto con fuente oficial inequívoca | Bajo-moderado | Decisión interna documentada + consulta a asesoría | Sí, condicionalmente — afecta qué plazo rige |
 | Momento de la obligación (art. 14.3.a vs. c) | Art. 14.3 RGPD | Si aplica 14.3.c, el plazo se adelanta a la primera comunicación (casi inmediata), no un mes | Moderado | Diseñar la información pública asumiendo el plazo más exigente | Sí |
 | Distinción imposible vs. esfuerzo desproporcionado | WP260 rev.01 | Son conceptos distintos; Vega debe elegir uno y justificarlo | Alto | Decidir formalmente cuál se invoca | Sí |
-| ¿Aplica 14.5.b en el caso de Vega? | Art. 14.5.b RGPD; WP260; Recital 62 | Posible pero no suficientemente seguro | Moderado-bajo | Evaluar alternativa de aviso vía usuario; documentar ponderación | Sí |
-| Medidas sustitutivas específicas del 14.5.b | Art. 14.5.b in fine; WP260 | Información pública + documentación de la ponderación | Alto | Implementar antes de invocar la excepción con seguridad | Sí |
+| ¿Aplica 14.5.b en el caso de Vega? | Art. 14.5.b RGPD; WP260; Recital 62 | Defendible principalmente por esfuerzo desproporcionado (ampliar el tratamiento de terceros para notificar individualmente es desproporcionado frente a la minimización ya aplicada), no por imposibilidad pura | Moderado | Posición jurídica interna adoptada el 2026-10-08; no se presenta como certeza | Sí |
+| Medidas sustitutivas específicas del 14.5.b | Art. 14.5.b in fine; WP260 | Información pública + documentación de la ponderación | Alto | **Contenido implementado** en `app/datos-de-terceros/page.tsx` (2026-10-08); cierre operativo pendiente de responsable efectivo y canal real | Sí |
 | Obligaciones generales de derechos (independientes del 14.5.b) | Art. 12, 15-21 RGPD | Existen con independencia de si se invoca el 14.5.b | Alto | Canal mínimo operativo (bloque 8) | Sí |
 | Art. 11 / Art. 12.2 / Art. 21 — oposición y identificación | Art. 11.2 RGPD; Art. 12.2 RGPD | El art. 21 no queda desactivado por el art. 11.2, pero su ejercicio práctico requiere identificación suficiente conforme al art. 12.2 | Alto | Diseñar el procedimiento manual conforme a esta distinción (bloque 8) | Sí |
 | Información pública mínima (bloque 6) | Art. 14.1-14.2 RGPD | Enumerada; no redactada | Alto | Redactar e incorporar a política pública | Sí (depende también de responsable efectivo) |
 | Identidad del responsable en la información pública | Art. 14.1.a RGPD | Pendiente aceptable solo en el análisis interno; bloqueante para la versión pública definitiva | Alto | Decidir identidad del responsable antes de publicar la información del bloque 6 | Sí |
-| Canal para la segunda persona (bloque 8) | Principio de responsabilidad proactiva; arts. 11, 12, 21 RGPD | Procedimiento manual diseñado, no implementado | Moderado | Aprobar e implementar | Sí |
+| Canal para la segunda persona (bloque 8) | Principio de responsabilidad proactiva; arts. 11, 12, 21 RGPD | Procedimiento manual diseñado; punto de entrada público implementado (`app/datos-de-terceros/page.tsx`, 2026-10-08) | Moderado | Activar el canal de contacto real cuando exista la sociedad | Sí |
 | Relación con el LIA | — | Mejora la posición pero no la cierra | Moderado | Revisar el LIA una vez resuelto lo anterior | No (nota, no bloqueante autónomo) |
 
 ---

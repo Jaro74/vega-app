@@ -422,7 +422,9 @@ esta implementación los resuelva, los siguientes puntos jurídicos:
   manual, sin canal automatizado);
 - cómo debe poder ejercer sus derechos la segunda persona del segmento
   B, que no tiene sesión ni acceso propio al sistema (ver
-  `VEGA_Segmento_B_Revision_Juridica_v1.md`);
+  `VEGA_Segmento_B_Revision_Juridica_v1.md`) — punto de entrada público
+  ya implementado en `/datos-de-terceros` (ver sección 9), con el canal
+  de contacto real todavía pendiente de la sociedad responsable;
 - la identidad y el email de contacto del responsable efectivo del
   tratamiento, todavía pendientes de decisión (ver sección 1).
 
@@ -444,6 +446,8 @@ La política definitiva del producto deberá regular específicamente:
 - qué limitaciones deben aplicarse.
 
 La retención técnica de estos datos brutos durante el experimento ya está implementada y se describe en la sección 5 (eliminación inmediata tras derivación, máximo técnico de 1 hora como fallback, con un margen práctico de hasta 2 horas por la cadencia del cron de limpieza); lo que sigue pendiente aquí son los aspectos de producto — qué mostrar al usuario y qué limitaciones aplicar — antes del lanzamiento del producto completo.
+
+**Implementado el 2026-10-08:** página pública `/datos-de-terceros` ("¿Crees que alguien ha usado tus datos en Vega?"), dirigida específicamente a la segunda persona del Segmento B (que no tiene sesión ni acceso propio al sistema). Enlazada desde esta política (sección 8) y desde el pie de página. Su cierre operativo como medida sustitutiva del art. 14.5.b RGPD sigue pendiente de que exista la sociedad responsable y un canal de privacidad real — ver `VEGA_Analisis_Art14_Segmento_B_v1.md`, bloque 8.
 
 ---
 

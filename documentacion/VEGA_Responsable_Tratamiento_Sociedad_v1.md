@@ -99,7 +99,7 @@ En los cuatro casos, la condición previa es que la relación contractual quede 
 - `VEGA_Politica_Privacidad_Beta_v1.md` — sección 1 (responsable), sección 7 (proveedores, con el estado real de los 4 DPAs ya alineados con la sociedad), sección 8 (canal de derechos, con el email real).
 - `VEGA_Plan_Tecnico_Implementacion_Experimento.md` — sección 83 (canal de derechos) y la sección de PostHog, sustituyendo cualquier referencia a "responsable no decidido" por los datos reales.
 - `VEGA_Paquete_Revision_Juridica_Externa_v1.md`, `VEGA_LIA_Segmento_B_v1.md` y `VEGA_Analisis_Art14_Segmento_B_v1.md` — estos tres documentos asumían como hecho la ausencia de responsable decidido; una vez resuelta, deberían revisarse para reflejar el cambio, en particular el LIA (bloque 4 de su ponderación) y el análisis de art. 14 (bloque 6, que marcaba la identidad del responsable como bloqueante de la versión pública definitiva).
-- La propia política pública (`app/privacy-policy/page.tsx`) y el TOS (`app/tos/page.tsx`), sustituyendo los placeholders actuales por los datos reales de la sociedad — esto no se hace en este documento (es código/contenido público, fuera del alcance de este análisis).
+- La propia política pública (`app/privacy-policy/page.tsx`), el TOS (`app/tos/page.tsx`) y la página pública para terceros (`app/datos-de-terceros/page.tsx`, implementada el 2026-10-08), sustituyendo los placeholders/mensajes de "canal todavía no operativo" actuales por los datos reales de la sociedad y el email de privacidad real — esto no se hace en este documento (es código/contenido público, fuera del alcance de este análisis).
 
 ---
 
@@ -141,6 +141,7 @@ En los cuatro casos, la condición previa es que la relación contractual quede 
 | 12 | Crear el email/canal de privacidad de la sociedad y asignar quién lo monitoriza | RGPD | 1 |
 | 13 | Actualizar `app/privacy-policy/page.tsx` con los datos reales de la sociedad (incluido NIF, nunca CIF) | RGPD / público | 1, 12 |
 | 14 | Actualizar `app/tos/page.tsx` con los datos reales de la sociedad | RGPD / público | 1 |
+| 14bis | Actualizar `app/datos-de-terceros/page.tsx` con el canal de privacidad real, cerrando operativamente la medida sustitutiva del art. 14.5.b | RGPD / público | 1, 12 |
 | 15 | Actualizar `VEGA_Politica_Privacidad_Beta_v1.md` (secciones 1, 7, 8) | Documentación interna | 8-12 |
 | 16 | Actualizar `VEGA_Plan_Tecnico_Implementacion_Experimento.md` (sección 83 y PostHog) | Documentación interna | 8-12 |
 | 17 | Revisar `VEGA_LIA_Segmento_B_v1.md` a la luz de la identidad ya resuelta | Documentación interna | 1 |

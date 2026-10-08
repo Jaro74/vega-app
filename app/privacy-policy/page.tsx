@@ -467,6 +467,13 @@ const PrivacyPolicy = () => {
           <section>
             <h2 className="text-xl font-bold mb-2">9. Datos de terceras personas</h2>
             <p>El flujo de relaciones de Vega puede permitir introducir datos de otra persona.</p>
+            <p>
+              Si crees que tus datos han sido introducidos en Vega por otra persona, consulta{" "}
+              <Link href="/datos-de-terceros" className="link link-primary">
+                ¿Crees que alguien ha usado tus datos en Vega?
+              </Link>
+              .
+            </p>
             <p>La política definitiva del producto deberá regular específicamente:</p>
             <ul className="list-disc pl-6 space-y-1">
               <li>qué datos de terceros pueden introducirse;</li>

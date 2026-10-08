@@ -164,5 +164,34 @@ test("declaracion de datos de terceros: texto visible y Continuar deshabilitado 
   await expect(continueButton).toBeEnabled();
 
   await continueButton.click();
+});
+
+// Regresion explicita: el enlace opcional para compartir (salvaguarda
+// complementaria, VEGA_Analisis_Art14_Segmento_B_v1.md bloque 8) debe
+// quedar completamente desacoplado de la declaracion obligatoria y del
+// gating del boton "Continuar" -- pulsarlo, con o sin la casilla
+// marcada, nunca debe habilitar ni deshabilitar "Continuar".
+test("enlace opcional para compartir: independiente de la declaracion obligatoria y de Continuar", async ({
+  page,
+  context,
+}) => {
+  await context.grantPermissions(["clipboard-write"]);
+  await startSegmentBUpToPartnerIntro(page);
+
+  await page.locator('input[type="date"]').fill("1988-03-02");
+  await selectPlace(page, "Valencia", "Valencia — Comunidad Valenciana — España");
+
+  const continueButton = page.getByRole("button", { name: "Continuar" });
+  const shareButton = page.getByRole("button", { name: /Copiar enlace para compartir/ });
+
+  await expect(continueButton).toBeDisabled();
+  await shareButton.click();
+  await expect(page.getByRole("button", { name: "Copiado" })).toBeVisible();
+  await expect(continueButton).toBeDisabled();
+
+  await page.getByRole("checkbox", { name: /Declaro que dispongo de estos datos/ }).check();
+  await expect(continueButton).toBeEnabled();
+
+  await continueButton.click();
   await expect(page.getByRole("heading", { name: "Tu primera lectura" })).toBeVisible();
 });

@@ -50,6 +50,9 @@ const Footer = () => {
               <Link href="/privacy-policy" className="link link-hover">
                 Política de privacidad
               </Link>
+              <Link href="/datos-de-terceros" className="link link-hover">
+                ¿Han usado tus datos?
+              </Link>
             </div>
           </div>
         </div>

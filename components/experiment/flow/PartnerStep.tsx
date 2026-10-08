@@ -36,6 +36,25 @@ export default function PartnerStep({ flowAttemptId, capture, onComplete }: Part
   const [thirdPartyDeclarationChecked, setThirdPartyDeclarationChecked] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [shareLinkCopied, setShareLinkCopied] = useState(false);
+
+  // Enlace opcional para compartir voluntariamente con la segunda persona
+  // (VEGA_Analisis_Art14_Segmento_B_v1.md, bloque 8 / salvaguarda
+  // complementaria del art. 14.5.b): deliberadamente independiente de
+  // thirdPartyDeclarationChecked y del handleSubmit -- no participa en
+  // ninguna validacion ni en el gating del boton "Continuar". URL
+  // absoluta construida con window.location.origin (nunca un dominio
+  // hardcodeado), para que funcione igual en local, preview y produccion.
+  const handleCopyShareLink = async () => {
+    const url = `${window.location.origin}/datos-de-terceros`;
+    const text = `He usado Vega para calcular una compatibilidad astrológica contigo con tu fecha de nacimiento. Si quieres saber qué datos se tratan y por qué: ${url}`;
+    try {
+      await navigator.clipboard.writeText(text);
+      setShareLinkCopied(true);
+    } catch {
+      setShareLinkCopied(false);
+    }
+  };
 
   const handleIntroContinue = () => {
     capture("partner_data_start");
@@ -176,6 +195,19 @@ export default function PartnerStep({ flowAttemptId, capture, onComplete }: Part
         <p className="text-xs opacity-70 pl-9">
           Esta declaración no constituye la base jurídica del tratamiento por Vega ni sustituye las
           obligaciones de información del art. 14.
+        </p>
+      </div>
+
+      {/* Salvaguarda complementaria, no obligatoria (distinta de la
+          declaracion de arriba): no participa en handleSubmit ni en el
+          disabled del boton "Continuar". */}
+      <div className="flex flex-col gap-1">
+        <button type="button" className="btn btn-ghost btn-sm self-start" onClick={handleCopyShareLink}>
+          {shareLinkCopied ? "Copiado" : "Copiar enlace para compartir (opcional)"}
+        </button>
+        <p className="text-xs opacity-70">
+          Si quieres, puedes compartir este enlace con la otra persona para que sepa qué datos se
+          tratan y por qué.
         </p>
       </div>
 
