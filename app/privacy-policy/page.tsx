@@ -38,9 +38,14 @@ const PrivacyPolicy = () => {
         <div className="border-l-4 border-warning bg-warning/10 p-4 rounded mb-8 text-sm leading-relaxed">
           <strong>Aviso:</strong> esta es una versión beta y provisional de la política de
           privacidad de Vega, todavía en fase de borrador interno durante la waitlist / beta
-          cerrada. No es una política definitiva ni debe tratarse como tal hasta completar los
-          datos legales de la sociedad responsable y finalizar la revisión de proveedores y
-          transferencias internacionales descrita más abajo.
+          cerrada. No es una política definitiva ni debe tratarse como tal hasta: identificar de
+          forma efectiva al responsable del tratamiento; cerrar operativamente la obligación de
+          información del art. 14 RGPD para el Segmento B (ver{" "}
+          <Link href="/datos-de-terceros" className="link link-primary">
+            /datos-de-terceros
+          </Link>
+          ); y finalizar la revisión contractual de proveedores y transferencias internacionales
+          descrita más abajo.
         </div>
 
         <div className="leading-relaxed space-y-8">
@@ -109,11 +114,20 @@ const PrivacyPolicy = () => {
               cualquier momento.
             </p>
             <p>
-              La base jurídica para el contexto libre, los datos de nacimiento (propios y, en el
-              segmento B, de la otra persona) y la evidencia astrológica derivada está pendiente
-              de una revisión jurídica específica. Mientras esa revisión no se complete y no
-              exista un responsable del tratamiento correctamente identificado, el tráfico real
-              del experimento permanece temporalmente suspendido.
+              Para los datos de nacimiento de la segunda persona en el Segmento B y la evidencia
+              astrológica derivada de ellos, Vega se apoya en el interés legítimo (art. 6.1.f
+              RGPD), tras una evaluación interna de necesidad, proporcionalidad y salvaguardas.
+            </p>
+            <p>
+              La base jurídica para el contexto libre y los datos de nacimiento propios del
+              usuario, y la evidencia astrológica derivada de ellos, sigue pendiente de
+              documentarse por separado antes de abrir tráfico real.
+            </p>
+            <p>
+              Mientras no se resuelvan, de forma independiente, la obligación de información del
+              art. 14 RGPD para el Segmento B y la identificación de un responsable del
+              tratamiento efectivo, el tráfico real del experimento permanece temporalmente
+              suspendido.
             </p>
           </section>
 
@@ -129,11 +143,27 @@ const PrivacyPolicy = () => {
               aplicable a esa nueva fase del producto.
             </p>
             <p>
-              El plazo de conservación del contexto libre, los datos de nacimiento (propios y, en
-              el segmento B, de la otra persona) y la evidencia astrológica derivada está
-              igualmente pendiente de esa misma revisión jurídica. Mientras no se complete y no
-              exista un responsable del tratamiento correctamente identificado, el tráfico real
-              del experimento permanece temporalmente suspendido.
+              El contexto libre, los datos de nacimiento propios del usuario y la evidencia
+              astrológica derivada asociada se conservan durante un máximo de 30 días, tras lo
+              cual quedan sujetos a eliminación mediante el mecanismo automático de retención
+              configurado para el experimento.
+            </p>
+            <p>
+              Para el Segmento B, los datos de nacimiento de la otra persona siguen reglas ya
+              implementadas y verificadas: el dato en bruto se borra de forma inmediata en el
+              funcionamiento normal; como red de seguridad técnica existe un fallback de borrado a
+              la hora, reforzado por una purga horaria programada, con una posible permanencia
+              física excepcional de hasta aproximadamente 2 horas si el borrado inmediato no se
+              produjera. El resultado calculado sobre la otra persona (sin el dato en bruto) deja
+              de poder reutilizarse transcurridas 24 horas; su eliminación física corre a cargo de
+              una purga horaria dedicada, con un margen físico adicional de hasta aproximadamente 1
+              hora.
+            </p>
+            <p>
+              Mientras no se resuelvan, de forma independiente, la obligación de información del
+              art. 14 RGPD para el Segmento B y la identificación de un responsable del
+              tratamiento efectivo, el tráfico real del experimento permanece temporalmente
+              suspendido.
             </p>
           </section>
 
@@ -447,20 +477,25 @@ const PrivacyPolicy = () => {
           <section>
             <h2 className="text-xl font-bold mb-2">8. Derechos de los usuarios</h2>
             <p>
-              El usuario podrá ejercer los derechos que correspondan en materia de protección de
-              datos, incluyendo:
+              El usuario podrá ejercer, cuando resulte aplicable según el tratamiento y la base
+              jurídica correspondiente, los derechos de:
             </p>
             <ul className="list-disc pl-6 space-y-1">
               <li>acceso;</li>
               <li>rectificación;</li>
               <li>supresión;</li>
-              <li>oposición, cuando proceda;</li>
               <li>limitación del tratamiento;</li>
-              <li>portabilidad, cuando proceda;</li>
-              <li>retirada del consentimiento.</li>
+              <li>oposición;</li>
+              <li>portabilidad.</li>
             </ul>
             <p>
-              <strong>Contacto para ejercer derechos:</strong> [email de privacidad pendiente]
+              La retirada de un consentimiento solo resulta aplicable a los tratamientos basados
+              en consentimiento, como el email de la waitlist (sección 4) — no al tratamiento de
+              los datos del Segmento B, basado en interés legítimo.
+            </p>
+            <p>
+              El canal específico de privacidad de la sociedad responsable se habilitará aquí
+              antes de abrir tráfico real.
             </p>
           </section>
 
@@ -474,15 +509,15 @@ const PrivacyPolicy = () => {
               </Link>
               .
             </p>
-            <p>La política definitiva del producto deberá regular específicamente:</p>
-            <ul className="list-disc pl-6 space-y-1">
-              <li>qué datos de terceros pueden introducirse;</li>
-              <li>para qué se utilizan;</li>
-              <li>cuánto tiempo se conservan;</li>
-              <li>qué información debe mostrar Vega al usuario;</li>
-              <li>qué limitaciones deben aplicarse.</li>
-            </ul>
-            <p>Este punto requiere una revisión específica antes del lanzamiento del producto completo.</p>
+            <p>
+              Este tratamiento se ha evaluado internamente bajo el interés legítimo (art. 6.1.f
+              RGPD, sección 4), y la página anterior es el punto de entrada específico ya
+              implementado para esa segunda persona. La obligación de información del art. 14
+              RGPD se apoya, como posición jurídica interna con confianza moderada, en poner esa
+              información a disposición pública — una medida que todavía no se considera
+              plenamente operativa mientras no exista un responsable del tratamiento efectivo y
+              un canal de privacidad real.
+            </p>
           </section>
 
           <section>
