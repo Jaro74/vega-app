@@ -18,6 +18,12 @@ Personas que quieren comprender algo que está ocurriendo en su propia vida.
 
 Personas que quieren comprender una situación relevante con otra persona.
 
+### Principio de producto no negociable (2026-10-10)
+
+> Vega debe permitir que el usuario exprese libremente sus dudas, inquietudes, miedos, anhelos y contexto personal. El sistema no debe bloquear contenido por su temática emocional o sensible. Las únicas restricciones automáticas deben limitarse a datos identificativos directos que no sean necesarios para prestar la experiencia.
+
+Este principio es un criterio de obligada consulta para futuras decisiones de UX, compliance y filtros sobre cualquier campo de texto libre del experimento — ninguna decisión posterior debe introducir una clasificación o bloqueo de contenido por tema, categoría especial del art. 9 RGPD o referencia relacional. No debe interpretarse como autorización para introducir identificadores directos innecesarios (email, teléfono, DNI, NIE u otros datos de contacto/identidad): esos siguen restringidos por minimización, con independencia de a quién pertenezcan (ver `VEGA_Consentimiento_FreeText_v1.md`).
+
 ---
 
 # A. LANDING NEUTRAL

@@ -6,6 +6,7 @@ import { POST as segmentPOST } from "@/app/api/segment/route";
 import { POST as problemPOST } from "@/app/api/problem/route";
 import { POST as withdrawFreeTextConsentPOST } from "@/app/api/privacy/withdraw-free-text-consent/route";
 import { getExperimentRepository, resetExperimentRepositoryForTests } from "@/libs/db";
+import { FREE_TEXT_CONSENT_VERSION } from "@/libs/experiment/constants";
 import type {
   ApiErrorResponse,
   PrivacyWithdrawFreeTextConsentResponse,
@@ -48,7 +49,12 @@ async function startAttempt(segment: "A" | "B" = "A") {
   return { jar, flowAttemptId: segmentBody.flowAttemptId };
 }
 
-async function submitProblemWithFreeText(jar: TestCookieJar, flowAttemptId: string, freeText: string, consentVersion = "v1") {
+async function submitProblemWithFreeText(
+  jar: TestCookieJar,
+  flowAttemptId: string,
+  freeText: string,
+  consentVersion: string = FREE_TEXT_CONSENT_VERSION
+) {
   return problemPOST(
     buildRequest("/api/problem", jar.asRecord(), {
       method: "POST",
@@ -91,6 +97,32 @@ describe("POST /api/privacy/withdraw-free-text-consent", () => {
     const problemContext = await repository.getProblemContextByFlowAttempt(flowAttemptId);
     expect(problemContext?.freeText).toBeNull();
     expect(problemContext?.textProvided).toBe(false);
+  });
+
+  it("un consentimiento historico bajo v1 se retira correctamente (v1 sigue soportada)", async () => {
+    const { jar, flowAttemptId } = await startAttempt("A");
+    await submitProblemWithFreeText(jar, flowAttemptId, "Un texto bajo la version historica v1", "v1");
+
+    const response = await withdraw(jar, flowAttemptId);
+    const body = (await response.json()) as PrivacyWithdrawFreeTextConsentResponse;
+    expect(body.outcome).toBe("withdrawn");
+
+    const repository = getExperimentRepository();
+    const problemContext = await repository.getProblemContextByFlowAttempt(flowAttemptId);
+    expect(problemContext?.freeText).toBeNull();
+  });
+
+  it("un consentimiento bajo la version vigente (v2) se retira correctamente", async () => {
+    const { jar, flowAttemptId } = await startAttempt("A");
+    await submitProblemWithFreeText(jar, flowAttemptId, "Un texto bajo la version vigente");
+
+    const response = await withdraw(jar, flowAttemptId);
+    const body = (await response.json()) as PrivacyWithdrawFreeTextConsentResponse;
+    expect(body.outcome).toBe("withdrawn");
+
+    const repository = getExperimentRepository();
+    const problemContext = await repository.getProblemContextByFlowAttempt(flowAttemptId);
+    expect(problemContext?.freeText).toBeNull();
   });
 
   it("es idempotente: retirar dos veces devuelve already_withdrawn la segunda vez", async () => {
@@ -145,13 +177,13 @@ describe("POST /api/problem — consentimiento del free_text", () => {
     expect(body.error).toBe("version_conflict");
   });
 
-  it("rechaza con 400 un texto que el filtro marca como datos de otra persona", async () => {
+  it("rechaza con 400 un texto que el filtro marca como identificador directo fuerte (email)", async () => {
     const { jar, flowAttemptId } = await startAttempt("A");
 
     const response = await submitProblemWithFreeText(
       jar,
       flowAttemptId,
-      "Mi pareja tiene depresion y no sabe como contarselo a su familia"
+      "Puedes escribirme a persona.ejemplo@correo.com si quieres"
     );
     expect(response.status).toBe(400);
 

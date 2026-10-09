@@ -69,7 +69,7 @@ export interface SegmentResponse {
 //
 // freeTextConsentGiven/freeTextConsentVersion son obligatorios cuando
 // freeText tiene contenido (consentimiento especifico art. 6.1.a /
-// 9.2.a cuando proceda, ver libs/experiment/third-party-sensitive-text-filter.ts
+// 9.2.a cuando proceda, ver libs/experiment/direct-identifier-filter.ts
 // y supabase/migrations/20260110000000_free_text_consent.sql);
 // irrelevantes si freeText esta vacio o ausente.
 export interface ProblemRequest {

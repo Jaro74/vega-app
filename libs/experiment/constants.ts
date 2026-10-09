@@ -38,12 +38,21 @@ export const FREE_TEXT_MAX_LENGTH = 1000;
 
 // Version del aviso + checkbox de consentimiento especifico del texto
 // libre de problem_context (art. 6.1.a / 9.2.a cuando proceda). Debe
-// coincidir exactamente con la fila 'v1' de free_text_consent_versions
-// (supabase/migrations/20260110000000_free_text_consent.sql) -- si el
-// texto visible cambia de forma material, esta constante sube de
-// version (p.ej. "v2") y se inserta una nueva fila, nunca se reutiliza
-// 'v1' para un contenido distinto.
-export const FREE_TEXT_CONSENT_VERSION = "v1" as const;
+// coincidir exactamente con la fila 'v2' de free_text_consent_versions
+// (supabase/migrations/20260111000000_free_text_consent_v2.sql) -- si
+// el texto visible cambia de forma material, esta constante sube de
+// version (p.ej. "v3") y se inserta una nueva fila, nunca se reutiliza
+// una version existente para un contenido distinto.
+//
+// Subida de "v1" a "v2" el 2026-10-10: el filtro/aviso/checkbox
+// cambiaron de prohibicion-por-categoria a minimizacion de
+// identificadores directos (ver documentacion/VEGA_Consentimiento_
+// FreeText_v1.md, seccion 2/5). Los eventos 'granted' ya registrados
+// bajo 'v1' siguen siendo una prueba de consentimiento valida para el
+// texto que realmente se mostro entonces -- no se reescriben ni se
+// invalidan; solo los grants NUEVOS a partir de este cambio se
+// registran como 'v2'.
+export const FREE_TEXT_CONSENT_VERSION = "v2" as const;
 
 export const OPEN_QUESTIONS = {
   A: "¿Quieres explorar primero por qué este patrón parece repetirse o qué está especialmente activo ahora?",

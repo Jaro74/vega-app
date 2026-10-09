@@ -6,7 +6,7 @@ import type { ProblemRequestInput } from "@/libs/validation/problem";
 import type { OwnProfileRequestInput } from "@/libs/validation/profile";
 import type { FlowStep, OwnProfilePrecision } from "@/types/experiment";
 
-import { checkThirdPartySensitiveText } from "./third-party-sensitive-text-filter";
+import { checkDirectIdentifiers } from "./direct-identifier-filter";
 
 // Logica de negocio de Sprint 2 (router+onboarding), sin dependencia de
 // Next.js: las rutas (app/api/problem, app/api/own-profile,
@@ -59,8 +59,8 @@ export interface SubmitProblemResult {
 // Camino sin texto (freeText vacio/ausente): upsertProblemContext
 // simple, sin consentimiento -- sin cambios respecto al contrato
 // original. Camino con texto: exige freeTextConsentGiven +
-// freeTextConsentVersion, aplica el filtro compartido de categorias
-// especiales de terceros ANTES de persistir, y delega la escritura
+// freeTextConsentVersion, aplica el filtro compartido de identificadores
+// directos fuertes ANTES de persistir, y delega la escritura
 // atomica (problem_context + evento de consentimiento) en
 // submitProblemContextWithFreeText (ver
 // supabase/migrations/20260110000000_free_text_consent.sql). Nunca
@@ -90,10 +90,10 @@ export async function submitProblem(
       return badRequest("se requiere consentimiento explicito para tratar el texto libre");
     }
 
-    const filterResult = checkThirdPartySensitiveText(trimmedFreeText);
+    const filterResult = checkDirectIdentifiers(trimmedFreeText);
     if (filterResult.blocked) {
       return badRequest(
-        "el texto parece incluir datos de otra persona; edita el texto para hablar solo de tu propia situacion"
+        "el texto parece incluir un dato de contacto o un documento de identidad; eliminalo antes de continuar"
       );
     }
 

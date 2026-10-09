@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { InMemoryExperimentRepository } from "@/libs/db/memory-repository";
+import { FREE_TEXT_CONSENT_VERSION } from "@/libs/experiment/constants";
 import {
   getResumeState,
   submitOwnProfile,
@@ -79,13 +80,13 @@ describe("onboarding-service", () => {
       expect(saved).toBeNull();
     });
 
-    it("rechaza el texto que el filtro marca como datos de otra persona", async () => {
+    it("rechaza el texto que el filtro marca como identificador directo fuerte (email)", async () => {
       const { attempt } = await createAttempt("A");
 
       const result = await submitProblem(repository, {
         flowAttemptId: attempt.id,
         trigger: "career",
-        freeText: "Mi pareja tiene depresion y no sabe como contarselo a su familia",
+        freeText: "Puedes escribirme a persona.ejemplo@correo.com si quieres",
         freeTextConsentGiven: true,
         freeTextConsentVersion: "v1",
       });
@@ -95,6 +96,74 @@ describe("onboarding-service", () => {
 
       const saved = await repository.getProblemContextByFlowAttempt(attempt.id);
       expect(saved).toBeNull();
+    });
+
+    // Politica de producto (2026-10-10): el filtro ya no clasifica
+    // contenido ni categorias especiales -- este tipo de contexto humano
+    // normal debe poder persistirse sin bloqueo.
+    it.each([
+      "Mi hijo Daniel lo está pasando mal en el colegio porque es homosexual.",
+      "Mi pareja tiene depresión y está en tratamiento psicológico.",
+      "Mi madre está enferma y esto me está afectando.",
+      "Mi ex tiene unas creencias religiosas muy distintas de las mías.",
+    ])("acepta contexto humano normal sin bloquear: %s", async (freeText) => {
+      const { attempt } = await createAttempt("A");
+
+      const result = await submitProblem(repository, {
+        flowAttemptId: attempt.id,
+        trigger: "career",
+        freeText,
+        freeTextConsentGiven: true,
+        freeTextConsentVersion: "v1",
+      });
+
+      expect(result.ok).toBe(true);
+      const saved = await repository.getProblemContextByFlowAttempt(attempt.id);
+      expect(saved?.freeText).toBe(freeText);
+    });
+
+    it("un consentimiento historico v1 sigue siendo valido: se persiste igual que cualquier otra version", async () => {
+      const { attempt } = await createAttempt("A");
+
+      const result = await submitProblem(repository, {
+        flowAttemptId: attempt.id,
+        trigger: "career",
+        freeText: "Un texto bajo la version historica v1",
+        freeTextConsentGiven: true,
+        freeTextConsentVersion: "v1",
+      });
+
+      expect(result.ok).toBe(true);
+      const saved = await repository.getProblemContextByFlowAttempt(attempt.id);
+      expect(saved?.textProvided).toBe(true);
+    });
+
+    it("FREE_TEXT_CONSENT_VERSION es v2: un nuevo consentimiento bajo la version vigente, seguido de un intento con v1, produce version_conflict (confirma que el ultimo evento quedo registrado como v2, no v1)", async () => {
+      const { attempt } = await createAttempt("A");
+      expect(FREE_TEXT_CONSENT_VERSION).toBe("v2");
+
+      const granted = await submitProblem(repository, {
+        flowAttemptId: attempt.id,
+        trigger: "career",
+        freeText: "Un texto bajo la version vigente",
+        freeTextConsentGiven: true,
+        freeTextConsentVersion: FREE_TEXT_CONSENT_VERSION,
+      });
+      expect(granted.ok).toBe(true);
+
+      const conflict = await submitProblem(repository, {
+        flowAttemptId: attempt.id,
+        trigger: "career",
+        freeText: "Intento con la version historica v1",
+        freeTextConsentGiven: true,
+        freeTextConsentVersion: "v1",
+      });
+
+      expect(conflict.ok).toBe(false);
+      if (conflict.ok === false) {
+        expect(conflict.status).toBe(409);
+        expect(conflict.error).toBe("version_conflict");
+      }
     });
 
     it("version_conflict: consentimiento vigente de una version distinta no se resuelve silenciosamente", async () => {

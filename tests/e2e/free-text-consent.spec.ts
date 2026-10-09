@@ -55,11 +55,11 @@ test("el filtro de cliente rechaza, con el mismo mensaje aprobado, sin llegar a 
   });
 
   await page.getByRole("button", { name: "Trabajo o carrera" }).click();
-  await page.getByRole("textbox").fill("Mi pareja tiene depresion y no sabe como contarselo a su familia");
+  await page.getByRole("textbox").fill("Puedes escribirme a persona.ejemplo@correo.com si quieres");
   await page.getByRole("checkbox", { name: /Doy mi consentimiento/ }).check();
   await page.getByRole("button", { name: "Continuar" }).click();
 
-  await expect(page.getByText(/Parece que este texto puede incluir datos sobre otra persona/)).toBeVisible();
+  await expect(page.getByText(/Parece que este texto incluye un dato de contacto o un documento de identidad/)).toBeVisible();
   // Nunca avanza de pantalla.
   await expect(page.getByRole("button", { name: "Trabajo o carrera" })).toHaveCount(0);
   await expect(page.getByRole("textbox")).toBeVisible();
@@ -98,7 +98,7 @@ test("el filtro servidor sigue siendo la barrera real: un texto que pasa el clie
       body: JSON.stringify({
         flowAttemptId: id,
         trigger: "career",
-        freeText: "Mi pareja tiene depresion y no sabe como contarselo a su familia",
+        freeText: "Puedes escribirme a persona.ejemplo@correo.com si quieres",
         freeTextConsentGiven: true,
         freeTextConsentVersion: "v1",
       }),
@@ -107,7 +107,7 @@ test("el filtro servidor sigue siendo la barrera real: un texto que pasa el clie
   }, flowAttemptId);
 
   expect(response.status).toBe(400);
-  expect(response.body.error).toContain("parece incluir datos de otra persona");
+  expect(response.body.error).toContain("dato de contacto o un documento de identidad");
 });
 
 test("/mis-datos permite retirar el consentimiento de un texto ya enviado", async ({ page }) => {

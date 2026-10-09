@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 import { FREE_TEXT_CONSENT_VERSION, FREE_TEXT_MAX_LENGTH } from "@/libs/experiment/constants";
-import { checkThirdPartySensitiveText } from "@/libs/experiment/third-party-sensitive-text-filter";
+import { checkDirectIdentifiers } from "@/libs/experiment/direct-identifier-filter";
 import { TRIGGER_LABELS_A, TRIGGER_LABELS_B } from "@/libs/experiment/trigger-labels";
 import type { Segment, Trigger } from "@/types/experiment";
 import type { ApiErrorResponse, ProblemResponse } from "@/types/api";
@@ -11,10 +11,16 @@ import type { ApiErrorResponse, ProblemResponse } from "@/types/api";
 import type { CaptureEventFn } from "./capture";
 
 const FREE_TEXT_NOTICE =
-  "Este campo es opcional: puedes continuar sin rellenarlo. No introduzcas datos de salud, orientación o vida sexual, religión o creencias, origen racial o étnico, afiliación sindical, ni datos genéticos o biométricos — ni tuyos ni de ninguna otra persona. Si decides incluir alguno de estos datos sobre ti mismo, tu consentimiento explícito (casilla de abajo) nos permite tratarlo, exclusivamente para generar tu interpretación personalizada. Ese consentimiento no puede autorizar, en ningún caso, el tratamiento de esos mismos datos si pertenecen a otra persona — el RGPD exige que sea esa persona, y no tú, quien los consienta.";
+  "Este campo es opcional. Cuéntanos solo lo necesario para entender tu situación. Evita incluir datos de contacto, documentos de identidad, direcciones u otros datos que permitan identificar directamente a otras personas.";
 
 const FREE_TEXT_CONSENT_CHECKBOX_LABEL =
-  "Doy mi consentimiento para que Vega trate el texto que he escrito arriba, incluida cualquier información sobre salud, orientación o vida sexual, religión o creencias, origen racial o étnico, afiliación sindical, o datos genéticos o biométricos que sean míos y que haya decidido incluir, con la única finalidad de generar mi interpretación personalizada. Este consentimiento no cubre el tratamiento de esos datos cuando pertenezcan a otra persona.";
+  "Doy mi consentimiento para que Vega trate el texto que he escrito para generar mi interpretación personalizada, incluida cualquier información sensible sobre mí que decida compartir. Este consentimiento no se extiende a información sensible sobre otras personas.";
+
+// Informativo, deliberadamente fuera del <label> del checkbox: no es
+// parte del texto que se consiente, solo un recordatorio de donde
+// ejercer la retirada (POST /api/privacy/withdraw-free-text-consent,
+// expuesto en /mis-datos).
+const FREE_TEXT_WITHDRAWAL_HINT = "Puedes retirar este consentimiento en cualquier momento desde ‘Mis datos’.";
 
 interface ProblemStepProps {
   segment: Segment;
@@ -29,13 +35,13 @@ interface ProblemStepProps {
 // pantalla de texto, no al elegir el trigger.
 const GENERIC_ERROR_MESSAGE = "No hemos podido guardar tu respuesta. Inténtalo de nuevo.";
 const MISSING_CONSENT_MESSAGE = "Para guardar este texto necesitamos tu consentimiento explícito — marca la casilla de arriba, o borra el texto si prefieres continuar sin él.";
-const FILTER_BLOCKED_MESSAGE = "Parece que este texto puede incluir datos sobre otra persona. Por favor, edítalo para hablar solo de tu propia situación.";
+const FILTER_BLOCKED_MESSAGE = "Parece que este texto incluye un dato de contacto o un documento de identidad. Elimínalo antes de continuar — Vega no necesita ese tipo de información.";
 const VERSION_CONFLICT_MESSAGE = "El texto de consentimiento se ha actualizado. Vuelve a marcar la casilla para continuar.";
 
 function errorMessageFor(status: number, serverError: string): string {
   if (status === 409) return VERSION_CONFLICT_MESSAGE;
   if (status === 400 && serverError.includes("consentimiento explicito")) return MISSING_CONSENT_MESSAGE;
-  if (status === 400 && serverError.includes("parece incluir datos de otra persona")) return FILTER_BLOCKED_MESSAGE;
+  if (status === 400 && serverError.includes("dato de contacto o un documento de identidad")) return FILTER_BLOCKED_MESSAGE;
   return GENERIC_ERROR_MESSAGE;
 }
 
@@ -77,7 +83,7 @@ export default function ProblemStep({ segment, flowAttemptId, capture, onComplet
     // y obligatorio): esto es solo feedback inmediato, nunca la barrera
     // de seguridad real -- si rechaza, no se llega a hacer la peticion,
     // pero el checkbox/consentimiento ya marcado no se altera.
-    if (hasFreeText && checkThirdPartySensitiveText(trimmedFreeText).blocked) {
+    if (hasFreeText && checkDirectIdentifiers(trimmedFreeText).blocked) {
       setError(FILTER_BLOCKED_MESSAGE);
       return;
     }
@@ -165,15 +171,18 @@ export default function ProblemStep({ segment, flowAttemptId, capture, onComplet
       </p>
 
       {hasFreeText && (
-        <label className="form-control flex-row items-start gap-2 cursor-pointer">
-          <input
-            type="checkbox"
-            className="checkbox checkbox-sm mt-1"
-            checked={freeTextConsentChecked}
-            onChange={(event) => setFreeTextConsentChecked(event.target.checked)}
-          />
-          <span className="text-sm">{FREE_TEXT_CONSENT_CHECKBOX_LABEL}</span>
-        </label>
+        <div className="flex flex-col gap-1">
+          <label className="form-control flex-row items-start gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              className="checkbox checkbox-sm mt-1"
+              checked={freeTextConsentChecked}
+              onChange={(event) => setFreeTextConsentChecked(event.target.checked)}
+            />
+            <span className="text-sm">{FREE_TEXT_CONSENT_CHECKBOX_LABEL}</span>
+          </label>
+          <p className="text-xs opacity-70">{FREE_TEXT_WITHDRAWAL_HINT}</p>
+        </div>
       )}
 
       {error && <p className="text-error text-sm">{error}</p>}
