@@ -57,6 +57,32 @@ export interface ProblemContextRecord {
   createdAt: string;
 }
 
+// Consentimiento especifico del free_text (art. 6.1.a / 9.2.a cuando
+// proceda) -- ver supabase/migrations/20260110000000_free_text_consent.sql.
+// Las dos operaciones son atomicas en el driver real (RPC con lock
+// sobre flow_attempts); el driver en memoria replica la misma maquina
+// de estados de forma sincrona (sin lock real, innecesario en un
+// proceso single-threaded entre awaits).
+export interface SubmitProblemContextWithFreeTextInput {
+  flowAttemptId: string;
+  trigger: string;
+  freeText: string;
+  consentVersion: string;
+}
+
+export type SubmitProblemContextWithFreeTextOutcome = "ok" | "version_conflict";
+
+export interface SubmitProblemContextWithFreeTextResult {
+  outcome: SubmitProblemContextWithFreeTextOutcome;
+}
+
+export type WithdrawFreeTextConsentOutcome = "withdrawn" | "no_consent" | "already_withdrawn" | "already_expired";
+
+export interface WithdrawFreeTextConsentResult {
+  outcome: WithdrawFreeTextConsentOutcome;
+  previewsDeleted: number;
+}
+
 export interface BirthPlaceInput {
   placeLabel: string;
   countryCode: string;
@@ -230,6 +256,12 @@ export interface PreviewRecord {
   generationStatus: PreviewGenerationStatus;
   errorType: PreviewGenerationErrorType | null;
   latencyMs: number | null;
+  // Fijado en el momento de generacion (true si problem_context.freeText
+  // se envio efectivamente a OpenAI para esta fila); nunca se recalcula
+  // despues. Necesario para la supresion selectiva al retirar el
+  // consentimiento del free_text (withdrawFreeTextConsent borra solo las
+  // filas de previews con used_free_text = true).
+  usedFreeText: boolean;
   createdAt: string;
 }
 
@@ -254,6 +286,7 @@ export interface CreatePreviewInput {
   generationStatus: PreviewGenerationStatus;
   errorType: PreviewGenerationErrorType | null;
   latencyMs: number | null;
+  usedFreeText: boolean;
 }
 
 // Sprint 4 - registro de intencion de pago confirmada (fake door). Unico
@@ -325,6 +358,32 @@ export interface ExperimentRepository {
   // usuario (fuera de la retencion automatica de 30 dias). Idempotente,
   // igual que deletePartnerInput/deletePartnerDerivedProfile.
   deleteProblemContext(flowAttemptId: string): Promise<void>;
+
+  // Alta/actualizacion atomica de problem_context + consentimiento del
+  // free_text (art. 6.1.a / 9.2.a cuando proceda). Reemplaza, solo para
+  // el camino que contiene free_text, al upsertProblemContext de arriba
+  // -- este sigue existiendo para el camino sin texto (solo trigger),
+  // que no necesita ninguna garantia de atomicidad adicional. Maquina
+  // de estados exacta en supabase/migrations/20260110000000_free_text_consent.sql.
+  submitProblemContextWithFreeText(
+    input: SubmitProblemContextWithFreeTextInput
+  ): Promise<SubmitProblemContextWithFreeTextResult>;
+
+  // Retirada atomica: borra las previews dependientes (used_free_text),
+  // limpia free_text/text_provided e inserta el evento 'withdrawn' --
+  // todo o nada. Idempotente (no_consent/already_withdrawn/already_expired
+  // para los casos en que no hay nada que retirar).
+  withdrawFreeTextConsent(flowAttemptId: string): Promise<WithdrawFreeTextConsentResult>;
+
+  // Canal de ejercicio de derechos: borra UNICAMENTE el historial de
+  // eventos de consentimiento del free_text de este flow_attempt.
+  // Necesario porque flow_attempts se conserva como cascara tras
+  // deleteAllOwnData (nunca se borra la fila), asi que el
+  // "on delete cascade" de free_text_consent_events hacia flow_attempts
+  // nunca se dispara por esa via -- este metodo es el borrado real.
+  // Nunca toca free_text_consent_versions (catalogo legal/versionado de
+  // Vega, sin datos personales del usuario). Idempotente.
+  deleteFreeTextConsentEvents(flowAttemptId: string): Promise<void>;
 
   upsertOwnBirthProfile(input: UpsertOwnBirthProfileInput): Promise<UserBirthProfileRecord>;
   getOwnBirthProfileByUser(userId: string): Promise<UserBirthProfileRecord | null>;

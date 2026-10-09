@@ -36,6 +36,15 @@ export const WAITLIST_CONSENT_VERSION = "waitlist_consent_v1" as const;
 
 export const FREE_TEXT_MAX_LENGTH = 1000;
 
+// Version del aviso + checkbox de consentimiento especifico del texto
+// libre de problem_context (art. 6.1.a / 9.2.a cuando proceda). Debe
+// coincidir exactamente con la fila 'v1' de free_text_consent_versions
+// (supabase/migrations/20260110000000_free_text_consent.sql) -- si el
+// texto visible cambia de forma material, esta constante sube de
+// version (p.ej. "v2") y se inserta una nueva fila, nunca se reutiliza
+// 'v1' para un contenido distinto.
+export const FREE_TEXT_CONSENT_VERSION = "v1" as const;
+
 export const OPEN_QUESTIONS = {
   A: "¿Quieres explorar primero por qué este patrón parece repetirse o qué está especialmente activo ahora?",
   B: "¿Quieres explorar primero qué os conecta o qué ocurre cuando aparece tensión entre vosotros?",

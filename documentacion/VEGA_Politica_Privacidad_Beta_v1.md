@@ -61,6 +61,16 @@ El tratamiento del email de la waitlist se basa en el consentimiento prestado ex
 
 El usuario puede retirar ese consentimiento en cualquier momento.
 
+### Datos propios del usuario en el flujo de exploración
+
+La fecha/hora/lugar de nacimiento propios y el motivo seleccionado (trigger) se tratan bajo interés legítimo (art. 6.1.f RGPD): son necesarios para generar la interpretación astrológica solicitada, el tratamiento se limita a esa finalidad y no incluyen, por sí mismos, ninguna categoría especial del art. 9 RGPD.
+
+El texto libre opcional (free_text) es distinto: puede, aunque Vega no lo solicita ni lo recomienda, llegar a contener una categoría especial del propio usuario (salud, orientación o vida sexual, religión o creencias, origen racial o étnico, afiliación sindical, datos genéticos o biométricos). Por eso se trata bajo consentimiento específico (art. 6.1.a RGPD) y, cuando el usuario decide incluir alguno de esos datos sobre sí mismo, bajo consentimiento explícito (art. 9.2.a RGPD) — nunca bajo interés legítimo, que no puede servir de excepción al art. 9.1. Ver `VEGA_Consentimiento_FreeText_v1.md` para el diseño completo (texto exacto del aviso/checkbox, modelo de retirada, filtro frente a datos de terceros).
+
+Ese mismo consentimiento específico **no cubre, en ningún caso, categorías especiales de una persona distinta del usuario** mencionadas en el texto libre: el art. 9.2.a exige el consentimiento explícito de la persona titular de esos datos, no de quien los menciona. Vega no dispone actualmente de una excepción del art. 9.2 que pueda invocar de forma general, predecible y adecuada para ese supuesto — se mitiga mediante un filtro técnico que reduce su frecuencia, nunca la elimina, y queda señalado como punto pendiente de consulta jurídica externa antes de abrir tráfico real.
+
+Las previews generadas heredan la base del texto libre utilizado para generarlas cuando lo usan (`used_free_text`); en caso contrario, se basan únicamente en los datos propios bajo interés legítimo.
+
 ---
 
 ## 5. Conservación

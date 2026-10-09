@@ -69,7 +69,12 @@ async function startAttempt(segment: "A" | "B") {
 }
 
 async function completeSegmentBOwnProfile(cookies: Record<string, string>, flowAttemptId: string) {
-  await postJson(problemPOST, "/api/problem", { flowAttemptId, trigger: "distance", freeText: "Un contexto de prueba" }, cookies);
+  await postJson(
+    problemPOST,
+    "/api/problem",
+    { flowAttemptId, trigger: "distance", freeText: "Un contexto de prueba", freeTextConsentGiven: true, freeTextConsentVersion: "v1" },
+    cookies
+  );
   await postJson(
     ownProfilePOST,
     "/api/own-profile",

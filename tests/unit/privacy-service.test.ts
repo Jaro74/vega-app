@@ -72,6 +72,7 @@ describe("privacy-service", () => {
       generationStatus: "valid",
       errorType: null,
       latencyMs: 120,
+      usedFreeText: false,
     });
   }
 
@@ -177,6 +178,36 @@ describe("privacy-service", () => {
       expect(await repository.getPartnerDerivedProfileByFlowAttempt(attempt.id)).toBeNull();
       expect(await repository.getValidPreviewByFlowAttempt(attempt.id)).toBeNull();
       expect(await repository.getWaitlistEntryByFlowAttempt(attempt.id)).toBeNull();
+    });
+
+    it("borra el historial de free_text_consent_events del intento (no depende de on delete cascade hacia flow_attempts, que se conserva)", async () => {
+      const { user, attempt } = await createUserWithAttempt();
+      await fillCoreData(attempt.id, user.id);
+
+      // Antes: un evento 'granted' real, creado por la misma RPC/estado
+      // que usa el flujo de produccion -- no un upsert directo.
+      const granted = await repository.submitProblemContextWithFreeText({
+        flowAttemptId: attempt.id,
+        trigger: "career",
+        freeText: "un texto con consentimiento",
+        consentVersion: "v1",
+      });
+      expect(granted.outcome).toBe("ok");
+
+      await deleteAllOwnData(repository, user.id);
+
+      // Despues: no debe quedar ningun evento para este intento. No hay
+      // un metodo de lectura publico sobre free_text_consent_events (es
+      // un historial de auditoria, no un dato que la app consulte
+      // directamente) -- se verifica por el unico contrato publico que
+      // depende de su estado: withdrawFreeTextConsent solo devuelve
+      // "no_consent" cuando no existe ningun evento previo.
+      const afterDelete = await repository.withdrawFreeTextConsent(attempt.id);
+      expect(afterDelete.outcome).toBe("no_consent");
+
+      // flow_attempts se conserva (cascara) -- el borrado de arriba fue
+      // real, no un efecto accidental de haber borrado el padre.
+      expect(await repository.getFlowAttemptById(attempt.id)).not.toBeNull();
     });
 
     it("nunca toca experiment_users, flow_attempts ni priced_access_intents", async () => {

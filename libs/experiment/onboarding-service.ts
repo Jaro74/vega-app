@@ -6,6 +6,8 @@ import type { ProblemRequestInput } from "@/libs/validation/problem";
 import type { OwnProfileRequestInput } from "@/libs/validation/profile";
 import type { FlowStep, OwnProfilePrecision } from "@/types/experiment";
 
+import { checkThirdPartySensitiveText } from "./third-party-sensitive-text-filter";
+
 // Logica de negocio de Sprint 2 (router+onboarding), sin dependencia de
 // Next.js: las rutas (app/api/problem, app/api/own-profile,
 // app/api/partner) solo traducen HTTP <-> estas funciones. Mismo patron
@@ -13,7 +15,10 @@ import type { FlowStep, OwnProfilePrecision } from "@/types/experiment";
 
 export interface ServiceError {
   ok: false;
-  status: 400 | 404;
+  // 409: consentimiento vigente de una version distinta de la enviada
+  // (version_conflict de submitProblemContextWithFreeText) -- no se
+  // decide aqui como resolverlo, solo se informa al cliente.
+  status: 400 | 404 | 409;
   error: string;
 }
 
@@ -44,11 +49,22 @@ export interface SubmitProblemResult {
 }
 
 // Un unico endpoint persiste trigger + texto opcional a la vez
-// (types/api.ts ProblemRequest, contrato congelado en Sprint 0): las
+// (types/api.ts ProblemRequest, contrato de Sprint 0, extendido de
+// forma aditiva en la consulta de consentimiento del free_text): las
 // pantallas A1/A2 (o B1/B2) son solo navegacion de UI, el submit real
 // ocurre al terminar la pantalla de texto. Idempotente: reenviar el
 // mismo flow_attempt_id actualiza la misma fila (unique en
 // problem_context), nunca duplica.
+//
+// Camino sin texto (freeText vacio/ausente): upsertProblemContext
+// simple, sin consentimiento -- sin cambios respecto al contrato
+// original. Camino con texto: exige freeTextConsentGiven +
+// freeTextConsentVersion, aplica el filtro compartido de categorias
+// especiales de terceros ANTES de persistir, y delega la escritura
+// atomica (problem_context + evento de consentimiento) en
+// submitProblemContextWithFreeText (ver
+// supabase/migrations/20260110000000_free_text_consent.sql). Nunca
+// llama a ambos caminos para el mismo submit.
 export async function submitProblem(
   repository: ExperimentRepository,
   input: ProblemRequestInput
@@ -60,12 +76,38 @@ export async function submitProblem(
     return badRequest(`trigger '${input.trigger}' no valido para el segmento ${attempt.segment}`);
   }
 
-  await repository.upsertProblemContext({
-    flowAttemptId: attempt.id,
-    trigger: input.trigger,
-    freeText: input.freeText ?? null,
-    textProvided: Boolean(input.freeText),
-  });
+  const trimmedFreeText = input.freeText?.trim() ?? "";
+
+  if (trimmedFreeText.length === 0) {
+    await repository.upsertProblemContext({
+      flowAttemptId: attempt.id,
+      trigger: input.trigger,
+      freeText: null,
+      textProvided: false,
+    });
+  } else {
+    if (!input.freeTextConsentGiven || !input.freeTextConsentVersion) {
+      return badRequest("se requiere consentimiento explicito para tratar el texto libre");
+    }
+
+    const filterResult = checkThirdPartySensitiveText(trimmedFreeText);
+    if (filterResult.blocked) {
+      return badRequest(
+        "el texto parece incluir datos de otra persona; edita el texto para hablar solo de tu propia situacion"
+      );
+    }
+
+    const result = await repository.submitProblemContextWithFreeText({
+      flowAttemptId: attempt.id,
+      trigger: input.trigger,
+      freeText: trimmedFreeText,
+      consentVersion: input.freeTextConsentVersion,
+    });
+
+    if (result.outcome === "version_conflict") {
+      return { ok: false, status: 409, error: "version_conflict" };
+    }
+  }
 
   await repository.updateFlowAttemptProgress({
     flowAttemptId: attempt.id,

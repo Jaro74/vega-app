@@ -78,7 +78,12 @@ async function startAttempt(segment: "A" | "B") {
 }
 
 async function completeSegmentAOnboardingAndPreview(cookies: Record<string, string>, flowAttemptId: string) {
-  await postJson(problemPOST, "/api/problem", { flowAttemptId, trigger: "career", freeText: "Contexto de prueba" }, cookies);
+  await postJson(
+    problemPOST,
+    "/api/problem",
+    { flowAttemptId, trigger: "career", freeText: "Contexto de prueba", freeTextConsentGiven: true, freeTextConsentVersion: "v1" },
+    cookies
+  );
   const ownProfileResponse = await postJson(
     ownProfilePOST,
     "/api/own-profile",
@@ -285,7 +290,12 @@ describe("Sprint 4 — journeys del recorrido comercial (paywall/intent/waitlist
 
   it("journey completo B: sinastria valida -> preview/complete -> priced-intent -> waitlist", async () => {
     const { flowAttemptId, cookies } = await startAttempt("B");
-    await postJson(problemPOST, "/api/problem", { flowAttemptId, trigger: "distance", freeText: "Contexto B" }, cookies);
+    await postJson(
+      problemPOST,
+      "/api/problem",
+      { flowAttemptId, trigger: "distance", freeText: "Contexto B", freeTextConsentGiven: true, freeTextConsentVersion: "v1" },
+      cookies
+    );
     await postJson(
       ownProfilePOST,
       "/api/own-profile",

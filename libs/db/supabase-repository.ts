@@ -20,6 +20,8 @@ import type {
   PreviewRecord,
   PricedAccessIntentRecord,
   ProblemContextRecord,
+  SubmitProblemContextWithFreeTextInput,
+  SubmitProblemContextWithFreeTextResult,
   UpdateFlowAttemptProgressInput,
   UpsertOwnBirthProfileInput,
   UpsertPartnerDerivedProfileInput,
@@ -27,6 +29,7 @@ import type {
   UpsertProblemContextInput,
   UserBirthProfileRecord,
   WaitlistRecord,
+  WithdrawFreeTextConsentResult,
 } from "./types";
 import { UniqueConstraintViolationError } from "./types";
 
@@ -200,6 +203,7 @@ interface PreviewRow {
   generation_status: PreviewRecord["generationStatus"];
   error_type: PreviewRecord["errorType"];
   latency_ms: number | null;
+  used_free_text: boolean;
   created_at: string;
 }
 
@@ -226,6 +230,7 @@ function toPreviewRecord(row: PreviewRow): PreviewRecord {
     generationStatus: row.generation_status,
     errorType: row.error_type,
     latencyMs: row.latency_ms,
+    usedFreeText: row.used_free_text,
     createdAt: row.created_at,
   };
 }
@@ -495,6 +500,63 @@ export class SupabaseExperimentRepository implements ExperimentRepository {
     }
   }
 
+  // RPC atomica (supabase/migrations/20260110000000_free_text_consent.sql):
+  // bloquea flow_attempts, decide por el ultimo evento de consentimiento
+  // por secuencia y escribe problem_context + el evento en una sola
+  // transaccion. outcome="version_conflict" significa que no se escribio
+  // nada -- hay un consentimiento vigente de una version distinta.
+  async submitProblemContextWithFreeText(
+    input: SubmitProblemContextWithFreeTextInput
+  ): Promise<SubmitProblemContextWithFreeTextResult> {
+    const { data, error } = await this.client.rpc("submit_problem_context_with_free_text", {
+      p_flow_attempt_id: input.flowAttemptId,
+      p_trigger: input.trigger,
+      p_free_text: input.freeText,
+      p_consent_version: input.consentVersion,
+    });
+
+    if (error) {
+      throw new Error(`No se pudo guardar el consentimiento del free_text: ${error.message}`);
+    }
+
+    const row = (Array.isArray(data) ? data[0] : data) as { outcome: SubmitProblemContextWithFreeTextResult["outcome"] };
+    return { outcome: row.outcome };
+  }
+
+  // RPC atomica: decide por el ultimo evento, y solo si es 'granted'
+  // borra las previews dependientes, limpia free_text/text_provided e
+  // inserta el 'withdrawn' -- todo o nada. Idempotente para los demas
+  // casos (no_consent/already_withdrawn/already_expired).
+  async withdrawFreeTextConsent(flowAttemptId: string): Promise<WithdrawFreeTextConsentResult> {
+    const { data, error } = await this.client.rpc("withdraw_free_text_consent", {
+      p_flow_attempt_id: flowAttemptId,
+    });
+
+    if (error) {
+      throw new Error(`No se pudo retirar el consentimiento del free_text: ${error.message}`);
+    }
+
+    const row = (Array.isArray(data) ? data[0] : data) as {
+      outcome: WithdrawFreeTextConsentResult["outcome"];
+      previews_deleted: number;
+    };
+    return { outcome: row.outcome, previewsDeleted: row.previews_deleted };
+  }
+
+  // Canal de ejercicio de derechos: borrado explicito del historial de
+  // eventos (deleteAllOwnData no puede depender de on delete cascade
+  // hacia flow_attempts, que se conserva como cascara). Nunca toca
+  // free_text_consent_versions.
+  async deleteFreeTextConsentEvents(flowAttemptId: string): Promise<void> {
+    const { error } = await this.client
+      .from("free_text_consent_events")
+      .delete()
+      .eq("flow_attempt_id", flowAttemptId);
+    if (error) {
+      throw new Error(`No se pudo borrar free_text_consent_events: ${error.message}`);
+    }
+  }
+
   // upsert con onConflict: user_id es unique en user_birth_profile, asi
   // que reenviar el perfil propio (reintento normal) actualiza la misma
   // fila en vez de duplicarla.
@@ -681,6 +743,7 @@ export class SupabaseExperimentRepository implements ExperimentRepository {
         generation_status: input.generationStatus,
         error_type: input.errorType,
         latency_ms: input.latencyMs,
+        used_free_text: input.usedFreeText,
       })
       .select()
       .single<PreviewRow>();

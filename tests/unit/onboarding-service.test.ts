@@ -39,13 +39,15 @@ describe("onboarding-service", () => {
   }
 
   describe("submitProblem", () => {
-    it("persiste trigger + texto y avanza a own_profile_intro", async () => {
+    it("persiste trigger + texto con consentimiento y avanza a own_profile_intro", async () => {
       const { attempt } = await createAttempt("A");
 
       const result = await submitProblem(repository, {
         flowAttemptId: attempt.id,
         trigger: "career",
         freeText: "Un texto de contexto",
+        freeTextConsentGiven: true,
+        freeTextConsentVersion: "v1",
       });
 
       expect(result.ok).toBe(true);
@@ -59,6 +61,93 @@ describe("onboarding-service", () => {
       const updatedAttempt = await repository.getFlowAttemptById(attempt.id);
       expect(updatedAttempt?.currentStep).toBe("problem_text");
       expect(updatedAttempt?.trigger).toBe("career");
+    });
+
+    it("rechaza el texto libre sin consentimiento explicito, sin persistir nada", async () => {
+      const { attempt } = await createAttempt("A");
+
+      const result = await submitProblem(repository, {
+        flowAttemptId: attempt.id,
+        trigger: "career",
+        freeText: "Un texto de contexto",
+      });
+
+      expect(result.ok).toBe(false);
+      if (result.ok === false) expect(result.status).toBe(400);
+
+      const saved = await repository.getProblemContextByFlowAttempt(attempt.id);
+      expect(saved).toBeNull();
+    });
+
+    it("rechaza el texto que el filtro marca como datos de otra persona", async () => {
+      const { attempt } = await createAttempt("A");
+
+      const result = await submitProblem(repository, {
+        flowAttemptId: attempt.id,
+        trigger: "career",
+        freeText: "Mi pareja tiene depresion y no sabe como contarselo a su familia",
+        freeTextConsentGiven: true,
+        freeTextConsentVersion: "v1",
+      });
+
+      expect(result.ok).toBe(false);
+      if (result.ok === false) expect(result.status).toBe(400);
+
+      const saved = await repository.getProblemContextByFlowAttempt(attempt.id);
+      expect(saved).toBeNull();
+    });
+
+    it("version_conflict: consentimiento vigente de una version distinta no se resuelve silenciosamente", async () => {
+      const { attempt } = await createAttempt("A");
+
+      await submitProblem(repository, {
+        flowAttemptId: attempt.id,
+        trigger: "career",
+        freeText: "Texto inicial",
+        freeTextConsentGiven: true,
+        freeTextConsentVersion: "v1",
+      });
+
+      const result = await submitProblem(repository, {
+        flowAttemptId: attempt.id,
+        trigger: "career",
+        freeText: "Texto editado",
+        freeTextConsentGiven: true,
+        freeTextConsentVersion: "v2",
+      });
+
+      expect(result.ok).toBe(false);
+      if (result.ok === false) {
+        expect(result.status).toBe(409);
+        expect(result.error).toBe("version_conflict");
+      }
+
+      const saved = await repository.getProblemContextByFlowAttempt(attempt.id);
+      expect(saved?.freeText).toBe("Texto inicial");
+    });
+
+    it("misma version: actualiza el texto sin duplicar el evento de consentimiento", async () => {
+      const { attempt } = await createAttempt("A");
+
+      await submitProblem(repository, {
+        flowAttemptId: attempt.id,
+        trigger: "career",
+        freeText: "Texto inicial",
+        freeTextConsentGiven: true,
+        freeTextConsentVersion: "v1",
+      });
+
+      const result = await submitProblem(repository, {
+        flowAttemptId: attempt.id,
+        trigger: "career",
+        freeText: "Texto editado",
+        freeTextConsentGiven: true,
+        freeTextConsentVersion: "v1",
+      });
+
+      expect(result.ok).toBe(true);
+      const saved = await repository.getProblemContextByFlowAttempt(attempt.id);
+      expect(saved?.freeText).toBe("Texto editado");
     });
 
     it("es idempotente: reenviar el mismo flow_attempt_id no duplica problem_context", async () => {

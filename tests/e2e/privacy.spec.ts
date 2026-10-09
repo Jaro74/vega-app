@@ -193,6 +193,7 @@ test("PostHog no recibe propiedades personales durante un journey A completo", a
 
   await page.getByRole("button", { name: "Trabajo o carrera" }).click();
   await page.getByRole("textbox").fill("Un contexto de prueba");
+  await page.getByRole("checkbox", { name: /Doy mi consentimiento/ }).check();
   await page.getByRole("button", { name: "Continuar" }).click();
 
   await page.getByRole("button", { name: "Añadir mis datos" }).click();

@@ -67,7 +67,8 @@ async function persistSynastryErrorPreview(
   repository: ExperimentRepository,
   attempt: FlowAttemptRecord,
   errorType: PreviewGenerationErrorType,
-  vegaFields: SynastryVegaOnlyFields = emptySynastryVegaFields()
+  vegaFields: SynastryVegaOnlyFields = emptySynastryVegaFields(),
+  usedFreeText: boolean = false
 ): Promise<void> {
   await repository.createPreview({
     flowAttemptId: attempt.id,
@@ -84,6 +85,7 @@ async function persistSynastryErrorPreview(
     generationStatus: "error",
     errorType,
     latencyMs: null,
+    usedFreeText,
   });
 }
 
@@ -107,6 +109,9 @@ async function persistInsufficientDataPreview(
     generationStatus: "insufficient_data",
     errorType: null,
     latencyMs: null,
+    // Nunca se llega a invocar a OpenAI en este camino (se corta antes,
+    // por evidencia insuficiente), asi que el free_text nunca se envio.
+    usedFreeText: false,
   });
 }
 
@@ -268,6 +273,9 @@ export async function generateSynastryPreview(
   }
 
   const evidence = derived.features;
+  // Mismo criterio que preview-service.ts: fijado en el momento exacto
+  // en que se decide que userContext se envia a OpenAI.
+  const usedFreeText = Boolean(problemContext?.freeText && problemContext.freeText.trim() !== "");
   const modelResult = await openaiClient.generatePreview({
     segment: "B",
     trigger,
@@ -282,7 +290,7 @@ export async function generateSynastryPreview(
   const vegaFields = synastryVegaFieldsFrom(evidence);
 
   if (modelResult.ok === false) {
-    await persistSynastryErrorPreview(repository, attempt, modelResult.errorType, vegaFields);
+    await persistSynastryErrorPreview(repository, attempt, modelResult.errorType, vegaFields, usedFreeText);
     return { status: "error", errorType: modelResult.errorType };
   }
 
@@ -308,6 +316,7 @@ export async function generateSynastryPreview(
     generationStatus: validation.valid ? "valid" : "invalid",
     errorType,
     latencyMs: modelResult.latencyMs,
+    usedFreeText,
   });
 
   if (!validation.valid) {

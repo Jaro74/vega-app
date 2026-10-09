@@ -7,6 +7,7 @@ import type {
   PrivacyDeleteAllResponse,
   PrivacyDeleteWaitlistResponse,
   PrivacySummaryResponse,
+  PrivacyWithdrawFreeTextConsentResponse,
 } from "@/types/api";
 
 type LoadStatus = "loading" | "unauthenticated" | "ready" | "deleted";
@@ -63,8 +64,8 @@ export default function MisDatosPage() {
             explorado Vega recientemente desde aquí, o si tu navegador no conserva la sesión.
           </p>
           <p className="opacity-70">
-            Para ejercer tus derechos sin una sesión activa, o para cualquier otra consulta sobre tus
-            datos, escribe a [email de privacidad pendiente].
+            El canal específico de privacidad de la sociedad responsable se habilitará aquí antes de abrir
+            tráfico real.
           </p>
         </div>
       </main>
@@ -82,8 +83,8 @@ export default function MisDatosPage() {
             {deleteAllResult.waitlistEntryDeleted ? ", incluida tu entrada en la lista de espera" : ""}.
           </p>
           <p className="opacity-70">
-            Si vuelves a usar Vega más adelante, empezarás con una sesión nueva. Para cualquier otra
-            consulta sobre tus datos, escribe a [email de privacidad pendiente].
+            Si vuelves a usar Vega más adelante, empezarás con una sesión nueva. El canal específico de
+            privacidad de la sociedad responsable se habilitará aquí antes de abrir tráfico real.
           </p>
         </div>
       </main>
@@ -123,6 +124,9 @@ export default function MisDatosPage() {
               {attempt.waitlistEntry && (
                 <p>Entrada en lista de espera con el email: {attempt.waitlistEntry.email}</p>
               )}
+              {attempt.hasFreeTextConsent && (
+                <WithdrawFreeTextConsentButton flowAttemptId={attempt.flowAttemptId} onWithdrawn={fetchSummary} />
+              )}
             </div>
           ))}
           {summary.hasOwnBirthProfile && (
@@ -140,7 +144,8 @@ export default function MisDatosPage() {
         </div>
 
         <p className="opacity-70 text-center text-xs">
-          Para cualquier otra consulta sobre tus datos, escribe a [email de privacidad pendiente].
+          El canal específico de privacidad de la sociedad responsable se habilitará aquí antes de abrir
+          tráfico real.
         </p>
       </div>
     </main>
@@ -243,6 +248,70 @@ function DeleteWaitlistButton({ email, onDeleted }: { email: string | null; onDe
       )}
       <button type="button" className="btn btn-primary" disabled={submitting} onClick={handleConfirm}>
         {submitting ? "Borrando..." : "Sí, borrar solo mi entrada de la lista de espera"}
+      </button>
+    </div>
+  );
+}
+
+// Retira unicamente el consentimiento del texto libre de ESTE intento
+// (POST /api/privacy/withdraw-free-text-consent) -- distinto de
+// DeleteWaitlistButton/DeleteAllButton, es por flow_attempt_id, no por
+// sesion, porque un usuario puede tener varios intentos con free_text
+// independientes.
+function WithdrawFreeTextConsentButton({
+  flowAttemptId,
+  onWithdrawn,
+}: {
+  flowAttemptId: string;
+  onWithdrawn: () => void;
+}) {
+  const [confirming, setConfirming] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState(false);
+  const submittingRef = useRef(false);
+
+  const handleConfirm = async () => {
+    if (submittingRef.current) return;
+    submittingRef.current = true;
+    setSubmitting(true);
+    setError(false);
+    try {
+      const response = await fetch("/api/privacy/withdraw-free-text-consent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ flowAttemptId }),
+      });
+      const body = (await response.json()) as PrivacyWithdrawFreeTextConsentResponse | ApiErrorResponse;
+      if (!response.ok || !("ok" in body) || !body.ok) throw new Error("retirada no confirmada");
+      onWithdrawn();
+    } catch {
+      setError(true);
+      setSubmitting(false);
+      submittingRef.current = false;
+    }
+  };
+
+  if (!confirming) {
+    return (
+      <button type="button" className="btn btn-outline btn-sm" onClick={() => setConfirming(true)}>
+        Retirar el consentimiento de este texto
+      </button>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-2 items-start">
+      <p className="text-sm opacity-80 max-w-sm">
+        Puedes retirar este consentimiento cuando quieras. Al hacerlo, borraremos el texto que escribiste y
+        cualquier interpretación que lo haya utilizado — el resto de tus datos no se verá afectado.
+      </p>
+      {error && (
+        <p className="text-sm text-error" role="alert">
+          No hemos podido completar la retirada. Puedes volver a intentarlo.
+        </p>
+      )}
+      <button type="button" className="btn btn-primary btn-sm" disabled={submitting} onClick={handleConfirm}>
+        {submitting ? "Retirando..." : "Sí, retirar el consentimiento de este texto"}
       </button>
     </div>
   );

@@ -13,6 +13,8 @@ import type {
   PreviewRecord,
   PricedAccessIntentRecord,
   ProblemContextRecord,
+  SubmitProblemContextWithFreeTextInput,
+  SubmitProblemContextWithFreeTextResult,
   UpdateFlowAttemptProgressInput,
   UpsertOwnBirthProfileInput,
   UpsertPartnerDerivedProfileInput,
@@ -20,6 +22,7 @@ import type {
   UpsertProblemContextInput,
   UserBirthProfileRecord,
   WaitlistRecord,
+  WithdrawFreeTextConsentResult,
 } from "./types";
 import { UniqueConstraintViolationError } from "./types";
 
@@ -42,6 +45,13 @@ export class InMemoryExperimentRepository implements ExperimentRepository {
   private readonly previewsByFlowAttempt = new Map<string, PreviewRecord[]>();
   private readonly pricedAccessIntentByFlowAttempt = new Map<string, PricedAccessIntentRecord>();
   private readonly waitlistEntryByFlowAttempt = new Map<string, WaitlistRecord>();
+  // Replica en memoria, sin lock real (innecesario en un proceso
+  // single-threaded entre awaits), de la misma maquina de estados append-only
+  // que supabase/migrations/20260110000000_free_text_consent.sql.
+  private readonly freeTextConsentEventsByFlowAttempt = new Map<
+    string,
+    { action: "granted" | "withdrawn" | "expired"; consentVersion: string }[]
+  >();
 
   async findOrCreateExperimentUser(input: FindOrCreateUserInput): Promise<ExperimentUserRecord> {
     const existing = this.usersByAnonymousId.get(input.anonymousUserId);
@@ -164,6 +174,71 @@ export class InMemoryExperimentRepository implements ExperimentRepository {
     this.problemContextByFlowAttempt.delete(flowAttemptId);
   }
 
+  // Replica la maquina de estados de la RPC real: ninguno/withdrawn/expired
+  // -> nuevo granted; granted con la misma consent_version -> solo
+  // actualiza el texto, sin evento nuevo; granted con version distinta ->
+  // version_conflict, no escribe nada.
+  async submitProblemContextWithFreeText(
+    input: SubmitProblemContextWithFreeTextInput
+  ): Promise<SubmitProblemContextWithFreeTextResult> {
+    if (!input.freeText || input.freeText.trim() === "") {
+      throw new Error("submitProblemContextWithFreeText exige un free_text no vacio");
+    }
+
+    const events = this.freeTextConsentEventsByFlowAttempt.get(input.flowAttemptId) ?? [];
+    const last = events[events.length - 1] ?? null;
+
+    if (last === null || last.action === "withdrawn" || last.action === "expired") {
+      events.push({ action: "granted", consentVersion: input.consentVersion });
+      this.freeTextConsentEventsByFlowAttempt.set(input.flowAttemptId, events);
+    } else if (last.action === "granted" && last.consentVersion === input.consentVersion) {
+      // Consentimiento vigente de la misma version: solo se actualiza el
+      // texto, sin duplicar el evento.
+    } else {
+      return { outcome: "version_conflict" };
+    }
+
+    const existing = this.problemContextByFlowAttempt.get(input.flowAttemptId);
+    const record: ProblemContextRecord = {
+      id: existing?.id ?? crypto.randomUUID(),
+      flowAttemptId: input.flowAttemptId,
+      trigger: input.trigger,
+      freeText: input.freeText,
+      textProvided: true,
+      createdAt: existing?.createdAt ?? new Date().toISOString(),
+    };
+    this.problemContextByFlowAttempt.set(input.flowAttemptId, record);
+    return { outcome: "ok" };
+  }
+
+  async withdrawFreeTextConsent(flowAttemptId: string): Promise<WithdrawFreeTextConsentResult> {
+    const events = this.freeTextConsentEventsByFlowAttempt.get(flowAttemptId) ?? [];
+    const last = events[events.length - 1] ?? null;
+
+    if (last === null) return { outcome: "no_consent", previewsDeleted: 0 };
+    if (last.action === "withdrawn") return { outcome: "already_withdrawn", previewsDeleted: 0 };
+    if (last.action === "expired") return { outcome: "already_expired", previewsDeleted: 0 };
+
+    const previews = this.previewsByFlowAttempt.get(flowAttemptId) ?? [];
+    const remaining = previews.filter((preview) => !preview.usedFreeText);
+    const previewsDeleted = previews.length - remaining.length;
+    this.previewsByFlowAttempt.set(flowAttemptId, remaining);
+
+    const existingContext = this.problemContextByFlowAttempt.get(flowAttemptId);
+    if (existingContext) {
+      this.problemContextByFlowAttempt.set(flowAttemptId, { ...existingContext, freeText: null, textProvided: false });
+    }
+
+    events.push({ action: "withdrawn", consentVersion: last.consentVersion });
+    this.freeTextConsentEventsByFlowAttempt.set(flowAttemptId, events);
+
+    return { outcome: "withdrawn", previewsDeleted };
+  }
+
+  async deleteFreeTextConsentEvents(flowAttemptId: string): Promise<void> {
+    this.freeTextConsentEventsByFlowAttempt.delete(flowAttemptId);
+  }
+
   async upsertOwnBirthProfile(input: UpsertOwnBirthProfileInput): Promise<UserBirthProfileRecord> {
     const existing = this.birthProfileByUser.get(input.userId);
     const now = new Date().toISOString();
@@ -277,6 +352,7 @@ export class InMemoryExperimentRepository implements ExperimentRepository {
       generationStatus: input.generationStatus,
       errorType: input.errorType,
       latencyMs: input.latencyMs,
+      usedFreeText: input.usedFreeText,
       createdAt: new Date().toISOString(),
     };
     const existing = this.previewsByFlowAttempt.get(input.flowAttemptId) ?? [];

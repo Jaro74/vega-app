@@ -182,6 +182,15 @@ describe("selectSegment", () => {
       async deleteProblemContext() {
         throw new Error("no usado en este test");
       },
+      async submitProblemContextWithFreeText() {
+        throw new Error("no usado en este test");
+      },
+      async withdrawFreeTextConsent() {
+        throw new Error("no usado en este test");
+      },
+      async deleteFreeTextConsentEvents() {
+        throw new Error("no usado en este test");
+      },
       async upsertOwnBirthProfile() {
         throw new Error("no usado en este test");
       },

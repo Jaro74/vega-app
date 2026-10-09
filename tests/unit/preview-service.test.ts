@@ -159,6 +159,9 @@ describe("generatePreviewForFlowAttempt", () => {
     expect(persisted?.generationStatus).toBe("valid");
     expect(persisted?.chartId).toBe("chart-1");
     expect(persisted?.evidenceIdsUsed).toEqual(["ev_001", "ev_002"]);
+    // problem_context de este intento tiene free_text con contenido
+    // (createSegmentAAttemptWithProfile de arriba): debe quedar marcado.
+    expect(persisted?.usedFreeText).toBe(true);
   });
 
   it("es idempotente: una segunda llamada devuelve la preview ya valida sin volver a llamar a Vega/OpenAI", async () => {

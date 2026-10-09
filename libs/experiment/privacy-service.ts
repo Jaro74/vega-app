@@ -39,6 +39,9 @@ export async function buildPrivacySummary(
         hasPartnerDerivedProfile: partnerDerivedProfile !== null,
         hasValidPreview: validPreview !== null,
         hasPricedAccessIntent: pricedAccessIntent !== null,
+        // Distinto de hasProblemContext: puede existir la fila (solo con
+        // trigger) sin ningun free_text con consentimiento vigente.
+        hasFreeTextConsent: problemContext?.textProvided ?? false,
         waitlistEntry: waitlistEntry
           ? {
               email: waitlistEntry.email,
@@ -90,6 +93,12 @@ export async function deleteAllOwnData(
 
   for (const attempt of attempts) {
     await repository.deleteProblemContext(attempt.id);
+    // flow_attempts se conserva como cascara (nunca se borra aqui ni en
+    // la ruta): el "on delete cascade" de free_text_consent_events hacia
+    // flow_attempts nunca se dispara, asi que el borrado real tiene que
+    // ser este explicito. Nunca borra free_text_consent_versions
+    // (catalogo legal/versionado, sin datos personales del usuario).
+    await repository.deleteFreeTextConsentEvents(attempt.id);
     await repository.deletePartnerInput(attempt.id);
     await repository.deletePartnerDerivedProfile(attempt.id);
     await repository.deletePreviewsForFlowAttempt(attempt.id);

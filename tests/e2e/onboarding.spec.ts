@@ -26,6 +26,10 @@ test("Journey A full: trigger -> texto -> fecha -> hora -> lugar -> onboarding c
 
   await page.getByRole("button", { name: "Trabajo o carrera" }).click();
   await page.getByRole("textbox").fill("Un poco de contexto de prueba");
+  // Consentimiento especifico del free_text (checkbox separado, no
+  // premarcado): "Continuar" queda deshabilitado mientras haya texto sin
+  // marcar.
+  await page.getByRole("checkbox", { name: /Doy mi consentimiento/ }).check();
   await page.getByRole("button", { name: "Continuar" }).click();
 
   await expect(page.getByRole("heading", { name: "Ahora podemos personalizarlo" })).toBeVisible();

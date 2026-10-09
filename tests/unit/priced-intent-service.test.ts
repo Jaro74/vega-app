@@ -38,6 +38,7 @@ async function createValidPreview(repository: InMemoryExperimentRepository, flow
     generationStatus: "valid",
     errorType: null,
     latencyMs: 10,
+    usedFreeText: false,
   });
 }
 

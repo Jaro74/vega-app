@@ -78,7 +78,12 @@ async function startAttempt(segment: "A" | "B") {
 }
 
 async function completeSegmentAOnboarding(cookies: Record<string, string>, flowAttemptId: string, birthTimeKnown: boolean) {
-  await postJson(problemPOST, "/api/problem", { flowAttemptId, trigger: "career", freeText: "Contexto de prueba" }, cookies);
+  await postJson(
+    problemPOST,
+    "/api/problem",
+    { flowAttemptId, trigger: "career", freeText: "Contexto de prueba", freeTextConsentGiven: true, freeTextConsentVersion: "v1" },
+    cookies
+  );
   const ownProfileResponse = await postJson(
     ownProfilePOST,
     "/api/own-profile",

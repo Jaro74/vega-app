@@ -488,6 +488,7 @@ describe("SupabaseExperimentRepository", () => {
       generation_status: "valid" | "invalid" | "error" | "insufficient_data";
       error_type: string | null;
       latency_ms: number | null;
+      used_free_text: boolean;
       created_at: string;
     } = {
       id: "preview-1",
@@ -511,6 +512,7 @@ describe("SupabaseExperimentRepository", () => {
       generation_status: "valid",
       error_type: null,
       latency_ms: 5,
+      used_free_text: false,
       created_at: "2026-01-01T00:00:00.000Z",
     };
     const chain = createFakeChain({});
@@ -538,6 +540,7 @@ describe("SupabaseExperimentRepository", () => {
       generationStatus: "valid",
       errorType: null,
       latencyMs: 5,
+      usedFreeText: false,
     });
 
     expect(chain.insert).toHaveBeenCalledWith(
@@ -669,5 +672,68 @@ describe("SupabaseExperimentRepository", () => {
     const repository = new SupabaseExperimentRepository(chain as unknown as SupabaseClient);
 
     expect(await repository.getWaitlistEntryByFlowAttempt("attempt-inexistente")).toBeNull();
+  });
+});
+
+// Paridad memory/supabase para el consentimiento del free_text: la
+// maquina de estados en si ya esta cubierta (contra InMemoryExperimentRepository)
+// en tests/unit/onboarding-service.test.ts -- aqui solo se verifica que
+// el driver real llama a la RPC correcta, con los parametros correctos,
+// y traduce su resultado tal cual (ver
+// supabase/migrations/20260110000000_free_text_consent.sql).
+describe("SupabaseExperimentRepository — consentimiento del free_text", () => {
+  it("submitProblemContextWithFreeText llama a la RPC con los parametros p_* esperados", async () => {
+    const rpc = vi.fn(() => Promise.resolve({ data: [{ outcome: "ok" }], error: null }));
+    const client = { rpc } as unknown as SupabaseClient;
+    const repository = new SupabaseExperimentRepository(client);
+
+    const result = await repository.submitProblemContextWithFreeText({
+      flowAttemptId: "attempt-1",
+      trigger: "career",
+      freeText: "un texto",
+      consentVersion: "v1",
+    });
+
+    expect(rpc).toHaveBeenCalledWith("submit_problem_context_with_free_text", {
+      p_flow_attempt_id: "attempt-1",
+      p_trigger: "career",
+      p_free_text: "un texto",
+      p_consent_version: "v1",
+    });
+    expect(result.outcome).toBe("ok");
+  });
+
+  it("submitProblemContextWithFreeText propaga version_conflict sin alterarlo", async () => {
+    const rpc = vi.fn(() => Promise.resolve({ data: [{ outcome: "version_conflict" }], error: null }));
+    const client = { rpc } as unknown as SupabaseClient;
+    const repository = new SupabaseExperimentRepository(client);
+
+    const result = await repository.submitProblemContextWithFreeText({
+      flowAttemptId: "attempt-1",
+      trigger: "career",
+      freeText: "un texto",
+      consentVersion: "v2",
+    });
+
+    expect(result.outcome).toBe("version_conflict");
+  });
+
+  it("withdrawFreeTextConsent llama a la RPC y traduce previews_deleted a previewsDeleted", async () => {
+    const rpc = vi.fn(() => Promise.resolve({ data: [{ outcome: "withdrawn", previews_deleted: 2 }], error: null }));
+    const client = { rpc } as unknown as SupabaseClient;
+    const repository = new SupabaseExperimentRepository(client);
+
+    const result = await repository.withdrawFreeTextConsent("attempt-1");
+
+    expect(rpc).toHaveBeenCalledWith("withdraw_free_text_consent", { p_flow_attempt_id: "attempt-1" });
+    expect(result).toEqual({ outcome: "withdrawn", previewsDeleted: 2 });
+  });
+
+  it("lanza un error legible si la RPC de retirada falla", async () => {
+    const rpc = vi.fn(() => Promise.resolve({ data: null, error: { message: "boom" } }));
+    const client = { rpc } as unknown as SupabaseClient;
+    const repository = new SupabaseExperimentRepository(client);
+
+    await expect(repository.withdrawFreeTextConsent("attempt-1")).rejects.toThrow(/No se pudo retirar/);
   });
 });

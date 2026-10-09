@@ -501,6 +501,7 @@ describe("InMemoryExperimentRepository - Sprint 3B", () => {
       generationStatus: "valid",
       errorType: null,
       latencyMs: 5,
+      usedFreeText: false,
     });
 
     expect(record.partnerPrecision).toBe("full");
@@ -526,6 +527,7 @@ describe("InMemoryExperimentRepository - Sprint 3B", () => {
       generationStatus: "insufficient_data",
       errorType: null,
       latencyMs: null,
+      usedFreeText: false,
     });
 
     expect(record.generationStatus).toBe("insufficient_data");

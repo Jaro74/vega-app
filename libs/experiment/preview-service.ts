@@ -54,7 +54,8 @@ async function persistErrorPreview(
   repository: ExperimentRepository,
   flowAttemptId: string,
   errorType: PreviewGenerationErrorType,
-  vegaFields: VegaOnlyFields = emptyVegaFields()
+  vegaFields: VegaOnlyFields = emptyVegaFields(),
+  usedFreeText: boolean = false
 ): Promise<void> {
   await repository.createPreview({
     flowAttemptId,
@@ -68,6 +69,7 @@ async function persistErrorPreview(
     generationStatus: "error",
     errorType,
     latencyMs: null,
+    usedFreeText,
   });
 }
 
@@ -143,6 +145,12 @@ export async function generatePreviewForFlowAttempt(
     return { status: "error", errorType: "calculation_error" };
   }
 
+  // Fijado en el momento exacto en que se decide que userContext se
+  // envia a OpenAI -- nunca se recalcula despues a partir del estado
+  // actual de problem_context, que puede cambiar o borrarse mas
+  // adelante (retirada de consentimiento, purga por retencion).
+  const usedFreeText = Boolean(problemContext?.freeText && problemContext.freeText.trim() !== "");
+
   const modelResult = await openaiClient.generatePreview({
     segment: "A",
     trigger,
@@ -152,7 +160,7 @@ export async function generatePreviewForFlowAttempt(
   });
 
   if (modelResult.ok === false) {
-    await persistErrorPreview(repository, flowAttemptId, modelResult.errorType, vegaFieldsFrom(vegaData));
+    await persistErrorPreview(repository, flowAttemptId, modelResult.errorType, vegaFieldsFrom(vegaData), usedFreeText);
     return { status: "error", errorType: modelResult.errorType };
   }
 
@@ -171,6 +179,7 @@ export async function generatePreviewForFlowAttempt(
     generationStatus: validation.valid ? "valid" : "invalid",
     errorType,
     latencyMs: modelResult.latencyMs,
+    usedFreeText,
   });
 
   if (!validation.valid) {

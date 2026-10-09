@@ -66,10 +66,18 @@ export interface SegmentResponse {
 }
 
 // POST /api/problem
+//
+// freeTextConsentGiven/freeTextConsentVersion son obligatorios cuando
+// freeText tiene contenido (consentimiento especifico art. 6.1.a /
+// 9.2.a cuando proceda, ver libs/experiment/third-party-sensitive-text-filter.ts
+// y supabase/migrations/20260110000000_free_text_consent.sql);
+// irrelevantes si freeText esta vacio o ausente.
 export interface ProblemRequest {
   flowAttemptId: string;
   trigger: Trigger;
   freeText?: string;
+  freeTextConsentGiven?: boolean;
+  freeTextConsentVersion?: string;
 }
 
 export interface ProblemResponse {
@@ -236,6 +244,11 @@ export interface PrivacyFlowAttemptSummary {
   hasPartnerDerivedProfile: boolean;
   hasValidPreview: boolean;
   hasPricedAccessIntent: boolean;
+  // Consentimiento especifico del free_text vigente (ver
+  // POST /api/privacy/withdraw-free-text-consent) -- distinto de
+  // hasProblemContext, que solo indica que existe la fila (puede tener
+  // trigger sin ningun free_text asociado).
+  hasFreeTextConsent: boolean;
   waitlistEntry: PrivacyWaitlistSummary | null;
 }
 
@@ -273,6 +286,21 @@ export interface PrivacyDeleteAllResponse {
 export interface PrivacyDeleteWaitlistResponse {
   ok: true;
   deleted: boolean;
+}
+
+// POST /api/privacy/withdraw-free-text-consent
+//
+// Accion independiente de delete-all: retira unicamente el
+// consentimiento del free_text de un flow_attempt concreto (RPC atomica
+// withdraw_free_text_consent) -- borra el texto, las previews que
+// dependian de el (used_free_text) e inserta el evento 'withdrawn'. No
+// toca trigger, user_birth_profile ni el resto de la sesion. Idempotente:
+// outcome distinto de "withdrawn" no es un error, solo indica que no
+// habia nada que retirar.
+export interface PrivacyWithdrawFreeTextConsentResponse {
+  ok: true;
+  outcome: "withdrawn" | "no_consent" | "already_withdrawn" | "already_expired";
+  previewsDeleted: number;
 }
 
 // Forma comun de error para cualquier ruta interna.

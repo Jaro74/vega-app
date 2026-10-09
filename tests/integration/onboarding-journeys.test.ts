@@ -88,7 +88,7 @@ describe("Sprint 2 — journeys de onboarding completos", () => {
 
     const problemResponse = await postJson(
       "/api/problem",
-      { flowAttemptId, trigger: "career", freeText: "Contexto de prueba" },
+      { flowAttemptId, trigger: "career", freeText: "Contexto de prueba", freeTextConsentGiven: true, freeTextConsentVersion: "v1" },
       cookies
     );
     const problemBody = (await problemResponse.json()) as ProblemResponse;
@@ -217,7 +217,11 @@ describe("Sprint 2 — journeys de onboarding completos", () => {
     const { flowAttemptId, cookies } = await startAttempt("A");
 
     await postJson("/api/problem", { flowAttemptId, trigger: "career" }, cookies);
-    await postJson("/api/problem", { flowAttemptId, trigger: "career", freeText: "segundo intento" }, cookies);
+    await postJson(
+      "/api/problem",
+      { flowAttemptId, trigger: "career", freeText: "segundo intento", freeTextConsentGiven: true, freeTextConsentVersion: "v1" },
+      cookies
+    );
 
     const repository = getExperimentRepository();
     const problemContext = await repository.getProblemContextByFlowAttempt(flowAttemptId);
