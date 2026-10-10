@@ -291,14 +291,14 @@ calcular la evidencia astrológica. Verificado a fecha de esta revisión:
   **EU West (Amsterdam, Países Bajos)**, tras una migración desde US West.
 - **Segmento A:** se usa `POST /evidence/natal`.
 - **Segmento B:** se usa `POST /evidence/synastry`.
-- Railway/Vega procesa, para calcular esa evidencia: fecha de nacimiento,
+- `vega-api` procesa, para calcular esa evidencia: fecha de nacimiento,
   hora (solo si es conocida), zona horaria y coordenadas
   (latitud/longitud).
-- Railway/Vega **no** recibe: el email de la waitlist, el
+- `vega-api` **no** recibe: el email de la waitlist, el
   `anonymousUserId`, el `flowAttemptId`, ni el nombre de la ciudad — solo
   recibe un `request_id` efímero generado por cada llamada, sin relación
   directa con la identidad del experimento.
-- Las respuestas de Railway/Vega devuelven evidencia ya derivada e
+- Las respuestas de `vega-api` devuelven evidencia ya derivada e
   identificadores técnicos de carta (`chart_id`) y de contexto de
   precisión/hora conocida, pero **no** devuelven de nuevo la fecha, hora o
   lugar en bruto enviados.
@@ -324,7 +324,7 @@ contiene estructuras de jobs/requests con columnas JSON en las que, en la
 inspección realizada, no se encontraron payloads de nacimiento
 (`birth_data`, `birth_data_a`, `birth_data_b`) persistidos. Esto describe
 lo observado en la configuración y el runtime actual en el momento de la
-inspección, no una garantía absoluta de que Railway/Vega nunca procese o
+inspección, no una garantía absoluta de que `vega-api` nunca procese o
 conserve otro tipo de metadatos técnicos conforme a sus propias políticas
 de infraestructura — ese extremo requeriría una revisión contractual y de
 logging propia de Railway, igual que para el resto de proveedores de esta

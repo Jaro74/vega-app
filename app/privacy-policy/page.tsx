@@ -408,19 +408,22 @@ const PrivacyPolicy = () => {
                 <strong>Segmento B:</strong> se usa POST /evidence/synastry.
               </li>
               <li>
-                Railway/Vega procesa, para calcular esa evidencia: fecha de nacimiento, hora
-                (solo si es conocida), zona horaria y coordenadas (latitud/longitud).
+                Para calcular esa evidencia, <strong>vega-api</strong> procesa: fecha de
+                nacimiento, hora (solo si es conocida), zona horaria y coordenadas
+                (latitud/longitud). Estos datos viajan en el cuerpo (body) de la petición POST,
+                nunca en la URL.
               </li>
               <li>
-                Railway/Vega <strong>no</strong> recibe: el email de la waitlist, el
+                <strong>vega-api no recibe</strong>: el email de la lista de espera, el
                 anonymousUserId, el flowAttemptId, ni el nombre de la ciudad — solo recibe un
                 request_id efímero generado por cada llamada, sin relación directa con la
                 identidad del experimento.
               </li>
               <li>
-                Las respuestas de Railway/Vega devuelven evidencia ya derivada e identificadores
-                técnicos de carta (chart_id) y de contexto de precisión/hora conocida, pero{" "}
-                <strong>no</strong> devuelven de nuevo la fecha, hora o lugar en bruto enviados.
+                Las respuestas de <strong>vega-api</strong> devuelven evidencia ya derivada e
+                identificadores técnicos de carta (chart_id) y de contexto de precisión/hora
+                conocida, pero <strong>no</strong> devuelven de nuevo la fecha, hora o lugar en
+                bruto enviados.
               </li>
               <li>
                 Tras la migración a Amsterdam, se validaron POST /evidence/natal y POST
@@ -430,14 +433,16 @@ const PrivacyPolicy = () => {
               </li>
             </ul>
             <p>
-              Adicionalmente, el equipo operador confirmó directamente en el entorno de Railway
-              (fuera del alcance de esta revisión de código, que no tiene acceso al dashboard ni
-              al sistema de archivos del servicio):
+              Adicionalmente, el equipo operador de Vega confirmó directamente dentro del entorno
+              de Railway donde se ejecuta vega-api (fuera del alcance de esta revisión de código,
+              que no tiene acceso al dashboard ni al sistema de archivos del servicio):
             </p>
             <ul className="list-disc pl-6 space-y-1">
               <li>
-                el volumen /app/runtime sigue montado y conserva, entre otros, archivos técnicos
-                de flags, de log de acceso HTTP y de una base de datos interna de jobs;
+                el volumen /app/runtime, propio de vega-api, sigue montado y conserva, entre
+                otros, archivos técnicos de flags, un log de acceso HTTP y una base de datos
+                interna de jobs — <strong>generados por el propio servicio Vega, no por
+                Railway</strong>;
               </li>
               <li>el registro detallado de payloads está desactivado.</li>
             </ul>
@@ -447,11 +452,19 @@ const PrivacyPolicy = () => {
               payloads de nacimiento visibles, y la base de datos interna contiene estructuras de
               jobs/peticiones en las que, en la inspección realizada, no se encontraron payloads
               de nacimiento persistidos. Esto describe lo observado en la configuración y el
-              runtime actual en el momento de la inspección, no una garantía absoluta de que
-              Railway/Vega nunca procese o conserve otro tipo de metadatos técnicos conforme a sus
-              propias políticas de infraestructura — ese extremo requeriría una revisión
-              contractual y de logging propia de Railway, igual que para el resto de proveedores
-              de esta sección.
+              runtime actual en el momento de la inspección — no es una garantía absoluta de que
+              vega-api nunca procese o conserve otro tipo de metadatos técnicos.
+            </p>
+            <p>
+              Esto es distinto de los registros que Railway genera como parte de su propia
+              plataforma, como registros de aplicación, despliegue o peticiones HTTP. Según la
+              documentación de Railway, los registros HTTP contienen metadatos de la petición y
+              no su cuerpo, donde Vega envía los datos de nacimiento. Los registros de aplicación
+              pueden recoger lo que el propio proceso vega-api escriba en su salida estándar. La
+              configuración, ubicación y conservación aplicables a estos registros de plataforma,
+              así como la confirmación de que vega-api no escribe datos personales en su salida
+              estándar, se verificarán definitivamente antes de abrir el experimento a usuarios
+              reales.
             </p>
 
             <h3 className="text-lg font-semibold mt-6 mb-2">
@@ -459,11 +472,11 @@ const PrivacyPolicy = () => {
             </h3>
             <ul className="list-disc pl-6 space-y-1">
               <li>
-                Railway ofrece un Data Processing Addendum (DPA) propio, ejecutable mediante firma
-                a través de su sitio legal. <strong>Ese DPA no está formalizado hoy entre Vega
-                y Railway</strong> — la futura sociedad responsable deberá revisarlo,
-                documentarlo y, cuando proceda, ejecutarlo con sus propios datos legales antes de
-                tratar datos de usuarios reales.
+                Railway ofrece un Data Processing Addendum (DPA) propio, mediante un procedimiento
+                separado de adhesión. <strong>Ese DPA no está formalizado hoy entre Vega
+                y Railway</strong> — la futura sociedad responsable deberá revisarlo y
+                aceptarlo/firmarlo con sus propios datos legales antes de tratar datos de usuarios
+                reales.
               </li>
               <li>
                 Para transferencias de datos fuera del EEE/Reino Unido, el DPA de Railway prevé el
@@ -474,24 +487,20 @@ const PrivacyPolicy = () => {
               <li>
                 Railway publica y mantiene actualizada una lista pública de subencargados en su
                 Trust Center; dicha lista puede cambiar sin que este documento se actualice en
-                tiempo real — debe consultarse la fuente oficial para el estado vigente. El propio
-                DPA exige a Railway notificar con antelación cualquier nuevo subencargado no
-                esencial.
+                tiempo real — debe consultarse la fuente oficial para el estado vigente.
               </li>
               <li>
                 El workload de vega-api y su volumen asociado están desplegados en la región{" "}
-                <strong>EU West Metal (Amsterdam, Países Bajos)</strong>, y Railway documenta que
-                los volúmenes siguen la región del servicio al que están adjuntos. Esto sitúa ese
-                despliegue y almacenamiento asociado en Amsterdam, pero no implica que todo el
-                tratamiento realizado por Railway como proveedor ocurra exclusivamente en la UE.
+                <strong>EU West Metal (Amsterdam, Países Bajos)</strong>; esto no implica que todo
+                el tratamiento realizado por Railway como proveedor, incluidos sus propios
+                registros de plataforma, ocurra exclusivamente en la UE.
               </li>
               <li>
-                Railway Corp. es una entidad incorporada en EE. UU., y realiza allí sus
-                operaciones principales de tratamiento como proveedor (funciones corporativas, de
-                soporte, facturación y determinados subencargados). Railway puede efectuar
-                transferencias internacionales asociadas a esas operaciones bajo el EU-US/Swiss-US
-                Data Privacy Framework o las Cláusulas Contractuales Tipo, conforme a su propio
-                DPA — extremo que deberá confirmarse en la revisión contractual definitiva.
+                Railway Corp. es una entidad estadounidense y determinados tratamientos asociados
+                a funciones corporativas, soporte, facturación o subencargados pueden implicar
+                tratamiento fuera del EEE. Railway contempla para esas transferencias los
+                mecanismos previstos en su DPA, incluido el EU-US/Swiss-US Data Privacy Framework
+                cuando resulte aplicable y las Cláusulas Contractuales Tipo.
               </li>
               <li>
                 La Política de Privacidad y el DPA públicos de Railway regulan el tratamiento que
