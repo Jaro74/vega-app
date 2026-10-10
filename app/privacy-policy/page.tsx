@@ -237,28 +237,33 @@ const PrivacyPolicy = () => {
             <ul className="list-disc pl-6 space-y-1">
               <li>
                 Supabase actúa como proveedor de infraestructura y base de datos principal del
-                proyecto. La base de datos principal está desplegada en{" "}
-                <strong>West EU (Ireland), región eu-west-1</strong>.
+                proyecto. El proyecto está desplegado en{" "}
+                <strong>West EU (Ireland), región eu-west-1</strong>; la base de datos
+                PostgreSQL, Auth, Storage y los backups se alojan en esa misma región.
               </li>
               <li>
-                Supabase dispone de un Acuerdo de Tratamiento de Datos (DPA) propio y puede
-                recurrir a subencargados del tratamiento.
+                El DPA de Supabase forma parte del Agreement y es efectivo desde la fecha
+                efectiva del mismo — no requiere una firma independiente adicional.
               </li>
               <li>
-                Para posibles transferencias internacionales de datos fuera del Espacio Económico
-                Europeo, el marco contractual puede apoyarse en mecanismos como las Cláusulas
-                Contractuales Tipo (SCCs), según corresponda en cada caso.
+                Para los datos de Vega (Covered Data), Supabase actúa como encargado del
+                tratamiento (processor/service provider), o como subencargado (subprocessor)
+                cuando el cliente actúe a su vez como encargado de un responsable distinto. Para
+                determinados datos de uso propios (Usage Data), Supabase actúa como responsable
+                (controller) conforme a sus propios fines (Controller Purposes).
               </li>
               <li>
-                El DPA definitivo entre Vega y Supabase queda{" "}
-                <strong>pendiente de formalización</strong> hasta que exista la sociedad
-                responsable del tratamiento.
+                El DPA incorpora las Cláusulas Contractuales Tipo (SCCs) cuando resultan
+                aplicables a las transferencias internacionales correspondientes.
               </li>
               <li>
-                Esto no implica que la totalidad de los tratamientos de Supabase ocurran
-                exclusivamente dentro de la Unión Europea — algunos subencargados o funciones de
-                soporte pueden operar fuera del EEE bajo las garantías contractuales aplicables,
-                extremo que deberá confirmarse en la revisión contractual definitiva.
+                Cuando exista la sociedad responsable de Vega, deberá actualizarse la titularidad
+                y los datos contractuales de la cuenta para que la relación con Supabase refleje
+                correctamente a esa sociedad.
+              </li>
+              <li>
+                Determinados tratamientos auxiliares pueden realizarse fuera de la región
+                seleccionada, bajo las garantías contractuales aplicables.
               </li>
             </ul>
 
