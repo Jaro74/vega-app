@@ -310,19 +310,21 @@ const PrivacyPolicy = () => {
             <ul className="list-disc pl-6 space-y-1">
               <li>
                 Vega utiliza la Responses API de OpenAI con Structured Outputs (salida forzada a
-                un esquema JSON fijo).
+                un esquema JSON fijo) para generar las interpretaciones.
               </li>
               <li>
-                Las llamadas se realizan con <strong>store: false</strong>: OpenAI no retiene la
-                respuesta para recuperación posterior vía API.
+                Las llamadas se realizan con <strong>store: false</strong>: esto significa que
+                OpenAI no retiene la respuesta para recuperación posterior vía API, pero no
+                elimina necesariamente otros tratamientos, como logs de monitorización de abuso o
+                seguridad, ni las obligaciones legales a las que OpenAI pueda estar sujeta.
               </li>
               <li>
-                No se utilizan la Conversations API, Files, vector stores ni
-                previous_response_id — cada llamada es independiente, sin encadenar estado entre
-                peticiones.
+                Vega no utiliza funciones de OpenAI destinadas a almacenar o encadenar
+                conversaciones anteriores; cada llamada se procesa de forma independiente, sin
+                que Vega mantenga una conversación persistente en OpenAI.
               </li>
               <li>
-                No se envían a OpenAI: el email de la waitlist, el anonymousUserId, el
+                No se envían a OpenAI: el email de la lista de espera, el anonymousUserId, el
                 flowAttemptId, ni la fecha, hora o lugar de nacimiento, ni coordenadas.
               </li>
               <li>
@@ -346,11 +348,12 @@ const PrivacyPolicy = () => {
             </h3>
             <ul className="list-disc pl-6 space-y-1">
               <li>
-                OpenAI ofrece un Data Processing Addendum (DPA), incorporado a su Services
-                Agreement, que cubre GDPR y contempla a los clientes del EEE bajo OpenAI Ireland
-                Ltd. La futura sociedad responsable de Vega deberá revisar, documentar y, cuando
-                proceda, ejecutar/formalizar ese DPA con sus propios datos legales antes de tratar
-                datos de usuarios reales.
+                El Data Processing Addendum (DPA) de OpenAI forma parte del Services Agreement
+                aplicable y no requiere una firma independiente adicional. Para clientes situados
+                en el EEE o Suiza, la contraparte contractual es OpenAI Ireland Ltd. Cuando exista
+                la sociedad responsable de Vega, deberá revisarse y actualizarse la relación
+                comercial/cuenta para que identifique correctamente a esa sociedad, y
+                documentarse el mecanismo de transferencia aplicable.
               </li>
               <li>
                 Para transferencias de datos desde el EEE/Suiza fuera de esas regiones, el DPA de
@@ -364,15 +367,10 @@ const PrivacyPolicy = () => {
                 vigente.
               </li>
               <li>
-                OpenAI ofrece una región de tratamiento específica para Europa (EEA + Suiza) para
-                clientes de API, configurable por proyecto. Acceder a esa residencia europea
-                requiere, según la documentación vigente de OpenAI, cumplir requisitos adicionales
-                de elegibilidad/configuración, incluidos controles de monitorización de abuso
-                aprobados y la ejecución del correspondiente Modified Retention amendment.{" "}
-                <strong>Vega no tiene activada esta configuración hoy</strong>: las llamadas
-                actuales usan el endpoint global por defecto de la API (Responses API), no el
-                endpoint europeo — queda identificado como una mejora pendiente, no como una
-                garantía ya cumplida.
+                OpenAI ofrece opciones específicas de residencia y controles de retención para
+                determinados clientes, sujetas a requisitos y aprobación adicionales.{" "}
+                <strong>Vega no tiene activada actualmente esa configuración</strong> y utiliza el
+                endpoint global por defecto.
               </li>
               <li>
                 OpenAI declara que los datos enviados vía API no se usan para entrenar sus modelos
@@ -387,11 +385,6 @@ const PrivacyPolicy = () => {
                 (ZDR) o Modified Abuse Monitoring (MAM), sujetas a aprobación previa de OpenAI (no
                 autoservicio) y a un caso de uso elegible.{" "}
                 <strong>Vega no las ha solicitado ni tiene ninguna de ellas aprobada hoy.</strong>
-              </li>
-              <li>
-                Recordatorio de alcance (ya documentado en la subsección anterior): Vega no envía
-                a OpenAI el email de la waitlist, el anonymousUserId, el flowAttemptId, ni
-                fecha/hora/lugar de nacimiento en bruto.
               </li>
             </ul>
 
