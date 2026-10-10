@@ -90,9 +90,9 @@ const PrivacyPolicy = () => {
           <section>
             <h2 className="text-xl font-bold mb-2">3. Para qué usamos los datos</h2>
             <p>
-              El contexto libre y los datos de nacimiento (propios y, en el segmento B, de la
-              otra persona) se utilizan para calcular la evidencia astrológica y generar la
-              lectura personalizada del experimento.
+              Los datos de nacimiento se utilizan para calcular la evidencia astrológica. El
+              motivo seleccionado y, cuando decidas proporcionarlo, el contexto libre se utilizan
+              junto con esa evidencia para generar la lectura personalizada del experimento.
             </p>
             <p>El email se utilizará únicamente para:</p>
             <ul className="list-disc pl-6 space-y-1">
@@ -327,7 +327,7 @@ const PrivacyPolicy = () => {
                 técnico que OpenAI pueda realizar fuera de esa persistencia desactivada
                 (procesamiento de la petición, medidas de abuso/seguridad, obligaciones legales,
                 etc.) sigue sujeto a sus condiciones y políticas aplicables, que deben revisarse
-                igualmente antes de publicar esta política.
+                igualmente antes de abrir el experimento a usuarios reales.
               </li>
             </ul>
 
