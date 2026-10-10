@@ -270,30 +270,35 @@ const PrivacyPolicy = () => {
             <h3 className="text-lg font-semibold mt-6 mb-2">PostHog</h3>
             <ul className="list-disc pl-6 space-y-1">
               <li>
-                Vega utiliza <strong>PostHog Cloud EU</strong>, con infraestructura europea, para
-                analítica de producto.
+                Vega utiliza <strong>PostHog Cloud EU</strong>, con servidores alojados en{" "}
+                <strong>Frankfurt</strong>, para analítica de producto (Product Analytics).
               </li>
               <li>
-                El email de la waitlist no se envía como propiedad de ningún evento de analítica
-                (ver sección 6).
+                El email de la lista de espera no se envía como propiedad de ningún evento de
+                analítica (ver sección 6).
               </li>
               <li>
-                PostHog dispone de un DPA propio y puede recurrir a subencargados del tratamiento.
+                Los eventos de analítica se conservan, como máximo, durante{" "}
+                <strong>12 meses</strong>, conforme al plan actualmente contratado.
+              </li>
+              <li>Para los datos de Vega, PostHog actúa como encargado del tratamiento (processor).</li>
+              <li>
+                El DPA de PostHog se genera a través de su plataforma legal con los datos de la
+                empresa responsable y entra en vigor cuando esta lo firma; PostHog ya lo tiene
+                contrafirmado por su parte. Esta firma queda pendiente hasta que exista la
+                sociedad responsable del tratamiento.
               </li>
               <li>
-                Para posibles transferencias internacionales, PostHog contempla mecanismos como el{" "}
-                <strong>EU-US Data Privacy Framework</strong> y/o{" "}
-                <strong>Cláusulas Contractuales Tipo (SCCs)</strong>, según corresponda.
+                El DPA de PostHog contempla el <strong>EU-US Data Privacy Framework</strong> y{" "}
+                <strong>Cláusulas Contractuales Tipo (SCCs)</strong> para las transferencias
+                internacionales que correspondan.
               </li>
               <li>
-                La formalización del DPA entre Vega y PostHog queda <strong>pendiente</strong>{" "}
-                hasta que exista la sociedad responsable del tratamiento.
-              </li>
-              <li>
-                Esto no implica que absolutamente todo el procesamiento de PostHog se limite
-                físicamente a la Unión Europea — determinadas funciones de soporte o subencargados
-                pueden operar fuera del EEE bajo las garantías contractuales aplicables, extremo
-                que deberá confirmarse en la revisión contractual definitiva.
+                Aunque los datos se alojan en la región seleccionada, el propio DPA de PostHog
+                contempla que el tratamiento pueda realizarse también fuera de esa área protegida,
+                incluido en Estados Unidos y otros países, cuando resulte necesario para prestar
+                el servicio, a través de PostHog y de sus subencargados — cuya lista concreta
+                puede variar y debe consultarse en la fuente oficial de PostHog en cada momento.
               </li>
             </ul>
 
