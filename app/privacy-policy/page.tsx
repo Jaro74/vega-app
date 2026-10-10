@@ -113,15 +113,43 @@ const PrivacyPolicy = () => {
               expresamente por el usuario. El usuario puede retirar ese consentimiento en
               cualquier momento.
             </p>
+
+            <h3 className="text-lg font-semibold mt-6 mb-2">
+              Datos de nacimiento y motivo seleccionado
+            </h3>
+            <p>
+              Tu fecha, hora y lugar de nacimiento, y el motivo que seleccionas, se tratan sobre
+              la base de nuestro interés legítimo (art. 6.1.f RGPD) en poder generar la
+              interpretación que solicitas. Estos datos se utilizan únicamente para crear la
+              experiencia de Vega y se conservan durante el tiempo indicado en esta política.
+            </p>
+
+            <h3 className="text-lg font-semibold mt-6 mb-2">Texto libre opcional</h3>
+            <p>
+              Puedes añadir, de forma opcional, el contexto que consideres necesario para explicar
+              tu situación. El tratamiento de ese texto se basa en tu consentimiento (art. 6.1.a
+              RGPD).
+            </p>
+            <p>
+              Si decides incluir información especialmente sensible sobre ti, dicho tratamiento se
+              apoya además en tu consentimiento explícito (art. 9.2.a RGPD).
+            </p>
+            <p>
+              Puedes retirar este consentimiento en cualquier momento desde &lsquo;Mis
+              datos&rsquo;. Al hacerlo, eliminaremos el texto que hayas escrito y las
+              interpretaciones que se hayan generado utilizando ese texto.
+            </p>
+            <p>
+              Vega no bloquea el contenido por la temática de lo que quieras contar: puedes
+              expresar libremente tus dudas, inquietudes y contexto personal. Únicamente aplicamos
+              medidas de minimización para evitar que se introduzcan datos identificativos
+              directos que Vega no necesita, como datos de contacto o documentos de identidad.
+            </p>
+
             <p>
               Para los datos de nacimiento de la segunda persona en el Segmento B y la evidencia
               astrológica derivada de ellos, Vega se apoya en el interés legítimo (art. 6.1.f
               RGPD), tras una evaluación interna de necesidad, proporcionalidad y salvaguardas.
-            </p>
-            <p>
-              La base jurídica para el contexto libre y los datos de nacimiento propios del
-              usuario, y la evidencia astrológica derivada de ellos, sigue pendiente de
-              documentarse por separado antes de abrir tráfico real.
             </p>
             <p>
               Mientras no se resuelvan, de forma independiente, la obligación de información del
@@ -489,9 +517,11 @@ const PrivacyPolicy = () => {
               <li>portabilidad.</li>
             </ul>
             <p>
-              La retirada de un consentimiento solo resulta aplicable a los tratamientos basados
-              en consentimiento, como el email de la waitlist (sección 4) — no al tratamiento de
-              los datos del Segmento B, basado en interés legítimo.
+              La retirada del consentimiento se aplica a los tratamientos basados en
+              consentimiento, como el email de la lista de espera y el texto libre opcional.
+              Puedes retirar el consentimiento para el texto libre desde &lsquo;Mis
+              datos&rsquo;. La retirada no afecta a otros tratamientos que se basan en una base
+              jurídica diferente, como el interés legítimo.
             </p>
             <p>
               El canal específico de privacidad de la sociedad responsable se habilitará aquí
