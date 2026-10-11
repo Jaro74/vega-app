@@ -330,6 +330,20 @@ de infraestructura — ese extremo requeriría una revisión contractual y de
 logging propia de Railway, igual que para el resto de proveedores de esta
 sección.
 
+Auditoría de código realizada sobre el repositorio de `vega-api`
+(2026-10-11): para `/evidence/natal` y `/evidence/synastry`, no existe
+ninguna ruta por la que lleguen a la salida estándar del proceso
+(stdout/stderr) los datos de nacimiento, hora, zona horaria, coordenadas,
+el cuerpo de la petición o el cuerpo de la respuesta — verificado
+revisando el código real de ambos handlers y de todos sus módulos
+importados transitivamente (sin `print`, sin librería de logging, sin
+middleware ni APM de terceros en ese camino). El registro de acceso por
+defecto de Uvicorn sí escribe en esa misma salida estándar metadatos
+técnicos de cada petición — dirección IP de origen, método, ruta y
+código de estado —, que Railway puede capturar como registro de
+aplicación/plataforma. Su ubicación física y plazo de conservación
+siguen sin confirmarse directamente con Railway.
+
 ### Railway — contratación y transferencias internacionales
 
 - Railway ofrece un Data Processing Addendum (DPA) propio, que **requiere

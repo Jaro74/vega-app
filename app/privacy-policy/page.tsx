@@ -460,11 +460,15 @@ const PrivacyPolicy = () => {
               plataforma, como registros de aplicación, despliegue o peticiones HTTP. Según la
               documentación de Railway, los registros HTTP contienen metadatos de la petición y
               no su cuerpo, donde Vega envía los datos de nacimiento. Los registros de aplicación
-              pueden recoger lo que el propio proceso vega-api escriba en su salida estándar. La
-              configuración, ubicación y conservación aplicables a estos registros de plataforma,
-              así como la confirmación de que vega-api no escribe datos personales en su salida
-              estándar, se verificarán definitivamente antes de abrir el experimento a usuarios
-              reales.
+              pueden recoger lo que el propio proceso vega-api escriba en su salida estándar.
+              Verificado por código: para /evidence/natal y /evidence/synastry, vega-api no
+              escribe en su salida estándar los datos de nacimiento, hora, zona horaria,
+              coordenadas, ni el cuerpo de la petición o de la respuesta. El registro de acceso
+              estándar del servidor HTTP (Uvicorn) sí puede generar metadatos técnicos de la
+              petición en esa misma salida estándar, incluida la dirección IP de origen, el
+              método, la ruta y el código de estado. La configuración, ubicación y conservación
+              aplicables a estos registros de plataforma siguen pendientes de verificación
+              directa con Railway antes de abrir el experimento a usuarios reales.
             </p>
 
             <h3 className="text-lg font-semibold mt-6 mb-2">
