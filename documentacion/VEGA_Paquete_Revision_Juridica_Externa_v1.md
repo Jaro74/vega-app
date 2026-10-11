@@ -95,7 +95,42 @@ La identidad del responsable del tratamiento todavía no está decidida ni ident
 - ¿Es suficiente el estado contractual actual (DPA de Supabase y OpenAI ya incorporados; PostHog y Railway pendientes de firma) antes de abrir tráfico real, o hay que ejecutar algo adicional primero?
 - ¿El uso del endpoint global de OpenAI (en lugar del específico para EEE/Suiza), junto con los abuse-monitoring logs descritos arriba, requiere alguna medida adicional?
 
-**E. Otros**
+**E. Categorías especiales de terceros en free_text**
+
+Resumen fiel de `VEGA_Revision_Art9_Terceros_FreeText_v1.md` (revisión jurídica interna cerrada el
+2026-10-11, conclusión: CONSULTA EXTERNA RECOMENDADA), sin alterar sus hechos: el campo de texto
+libre opcional de Vega (`free_text`) puede contener menciones incidentales a terceros que, en un
+subconjunto de casos, resultan efectivamente identificados o razonablemente identificables, y que
+pueden revelar una categoría especial del art. 9.1 RGPD sobre esa persona. La revisión interna
+concluye que ninguna de las 10 excepciones del art. 9.2 resulta generalmente disponible para ese
+subconjunto, salvo la posibilidad ad hoc no generalizable del art. 9.2.e.
+
+Pregunta para el asesor:
+
+> "Un producto digital permite a los usuarios escribir libremente, en un campo de texto opcional,
+> el contexto personal de su consulta, sin ninguna restricción ni clasificación automática por
+> temática (incluyendo salud, sexualidad, religión o relaciones familiares de terceros), por
+> decisión expresa de producto para no penalizar el relato humano normal. Ese texto puede
+> incidentalmente contener información sobre una tercera persona que, en un subconjunto de casos,
+> resulta efectivamente identificada (p. ej. por su nombre) o razonablemente identificable en el
+> contexto real del responsable (p. ej. por una combinación de detalles suficientemente
+> singularizante, aun sin nombre) — a diferencia de otro subconjunto de menciones puramente
+> relacionales sin detalles adicionales ('mi madre', 'mi pareja', sin más), que pueden no permitir
+> a Vega identificar razonablemente a una persona concreta y que, por tanto, deben valorarse caso
+> por caso conforme al test contextual de identificabilidad. Para el primer subconjunto
+> —identificado o razonablemente identificable—, el tercero no presta consentimiento ni tiene
+> conocimiento del tratamiento. Los únicos filtros automáticos del producto restringen
+> identificadores directos (email, teléfono, DNI/NIE), nunca contenido por categoría especial. El
+> texto se usa solo para generar una interpretación personalizada dirigida al propio usuario, sin
+> crear perfiles separados del tercero, sin indexación por categoría especial, con retención
+> limitada (30 días) y vinculado solo al identificador técnico del usuario. Para ese subconjunto de
+> terceros identificados o razonablemente identificables, ¿concurre alguna excepción del art. 9.2
+> RGPD que pueda amparar este tratamiento en las circunstancias descritas? En particular, ¿existe
+> alguna interpretación del alcance del art. 9.1 o de alguna de las excepciones del art. 9.2 que
+> resulte jurídicamente defendible para este patrón de tratamiento? Si no existe, ¿qué medida
+> adicional de diseño o de tratamiento sería necesaria para evitar o hacer lícito ese tratamiento?"
+
+**F. Otros**
 - ¿Considera necesaria una DPIA (evaluación de impacto) u otra evaluación formal antes de abrir tráfico real?
 - ¿Identifica algún riesgo legal relevante no cubierto por las preguntas anteriores?
 
