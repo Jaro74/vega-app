@@ -54,8 +54,23 @@ Texto de retirada (en `/mis-datos`): *"Puedes retirar este consentimiento cuando
 - `POST /api/privacy/withdraw-free-text-consent`: mismo guard de pertenencia que las rutas de negocio (por `flowAttemptId`, no por sesión, porque un usuario puede tener intento primario y secundario con free_text independientes).
 - `/mis-datos`: botón de retirada por intento, visible solo cuando `hasFreeTextConsent`.
 
-## 5. Pendiente de consulta jurídica externa
+## 5. Revisión jurídica de free_text — estado por cuestión
+
+### 5.1 Cerrado internamente
+
+- **Checkbox único para 6.1.a + 9.2.a (datos sensibles del propio usuario):** REVISIÓN INTERNA
+  COMPLETADA (`VEGA_Revision_Checkbox_FreeText_Art6_Art9_v1.md`, 2026-10-11). Conclusión:
+  **CERRABLE INTERNAMENTE** — un único checkbox puede constituir simultáneamente consentimiento
+  válido del art. 6.1.a y consentimiento explícito del art. 9.2.a para la misma finalidad
+  (tratar el texto para generar la interpretación personalizada), sin infringir la granularidad y
+  sin exigir, como regla general, firma, doble acción ni un segundo checkbox separado. Un segundo
+  checkbox no es obligatorio; queda, como máximo, como mejora de claridad/UX no vinculante. No
+  activa consulta jurídica externa.
+
+### 5.2 Pendiente de consulta jurídica externa
 
 - **Categorías especiales de un tercero identificado o razonablemente identificable introducidas en el free_text:** objeto de una revisión jurídica interna completa (`VEGA_Revision_Art9_Terceros_FreeText_v1.md`, 2026-10-11), que concluye **CONSULTA EXTERNA RECOMENDADA** — no existe hoy ninguna excepción del art. 9.2 RGPD generalmente disponible para el subconjunto de menciones efectivamente identificadas o razonablemente identificables que revelen una categoría especial del art. 9.1. Desde la decisión de producto de no clasificar/bloquear contenido por categoría especial o marcador relacional, este supuesto queda sin mitigación técnica de contenido — solo el aviso general de minimización (sección 2) y la posibilidad de retirada. El principio de producto no negociable se mantiene sin cambios; esa revisión no propone todavía ninguna medida adicional, a la espera de la consulta externa.
-- Si el checkbox único puede servir simultáneamente de consentimiento art. 6.1.a y 9.2.a, o si un regulador exigiría dos acciones distintas.
+
+### 5.3 Pendiente de revisión jurídica interna
+
 - Plazo y regla de cómputo definitivos de `free_text_consent_events` (12 meses provisional) y su exclusión o no de `/delete-all`.
