@@ -44,7 +44,7 @@ Texto de retirada (en `/mis-datos`): *"Puedes retirar este consentimiento cuando
 - `previews.used_free_text`: fijado en el momento de generación (nunca recalculado), necesario para saber qué previews borrar al retirar el consentimiento.
 - `submit_problem_context_with_free_text()` / `withdraw_free_text_consent()`: RPCs `security definer`, atómicas, bloqueando siempre `flow_attempts` (lock canónico que existe incluso antes de que haya fila en `problem_context`) — serializan grant/retirada/expiración automática del mismo intento.
 - `purge_expired_experiment_personal_data()`: inserta `expired` antes de borrar una fila de `problem_context` cuyo último evento siga siendo `granted`, bajo el mismo lock.
-- `purge_expired_free_text_consent_events()`: purga ciclos ya cerrados (granted + su withdrawn/expired) 12 meses después del evento terminal — política provisional, no excluye por defecto esta tabla de `/delete-all`; una excepción del art. 17.3.e solo se aplicaría caso por caso, con un indicio concreto de reclamación, nunca de forma preventiva y general.
+- `purge_expired_free_text_consent_events()`: conforme a la revisión jurídica interna cerrada en `VEGA_Revision_Retencion_ConsentEvents_v1.md` (2026-10-11), la posición final es: **conservación probatoria ordinaria** de los eventos mínimos (versión, timestamp, tipo de evento, identificador técnico — nunca el contenido del free_text) durante **36 meses desde el evento terminal** (criterio operativo prudente alineado con el plazo de prescripción de 3 años de las infracciones muy graves del art. 72.1.c/e LOPDGDD, no determinación del *dies a quo* jurídico universal); **bloqueo conforme al art. 32 LOPDGDD** ante cualquier supresión (incluido `/delete-all`), en lugar de destrucción inmediata — inutilizados para los flujos ordinarios, disponibles solo para exigencia/defensa de responsabilidades; la supresión no reinicia automáticamente el plazo de 36 meses; **destrucción definitiva** cuando hayan prescrito las responsabilidades aplicables; y **conservación excepcional** ajustada a sus propios plazos si existe una reclamación o investigación concreta identificada. Pendiente de implementación técnica (no ejecutada todavía).
 
 ## 4. Capa de aplicación
 
@@ -67,10 +67,16 @@ Texto de retirada (en `/mis-datos`): *"Puedes retirar este consentimiento cuando
   checkbox no es obligatorio; queda, como máximo, como mejora de claridad/UX no vinculante. No
   activa consulta jurídica externa.
 
+- **Conservación probatoria de `free_text_consent_events`:** REVISIÓN INTERNA COMPLETADA
+  (`VEGA_Revision_Retencion_ConsentEvents_v1.md`, 2026-10-11). Conclusión: **CERRABLE
+  INTERNAMENTE** — conservación probatoria ordinaria de 36 meses desde el evento terminal (criterio
+  operativo prudente, no *dies a quo* jurídico universal); bloqueo conforme al art. 32 LOPDGDD ante
+  cualquier supresión, en lugar de destrucción inmediata; sin reinicio automático del plazo por
+  `/delete-all`; destrucción definitiva tras prescripción de las responsabilidades aplicables; y
+  conservación excepcional si existe una reclamación concreta. No activa consulta jurídica externa.
+  Pendiente de implementación técnica (ver sección 3 y el documento de la revisión).
+
 ### 5.2 Pendiente de consulta jurídica externa
 
 - **Categorías especiales de un tercero identificado o razonablemente identificable introducidas en el free_text:** objeto de una revisión jurídica interna completa (`VEGA_Revision_Art9_Terceros_FreeText_v1.md`, 2026-10-11), que concluye **CONSULTA EXTERNA RECOMENDADA** — no existe hoy ninguna excepción del art. 9.2 RGPD generalmente disponible para el subconjunto de menciones efectivamente identificadas o razonablemente identificables que revelen una categoría especial del art. 9.1. Desde la decisión de producto de no clasificar/bloquear contenido por categoría especial o marcador relacional, este supuesto queda sin mitigación técnica de contenido — solo el aviso general de minimización (sección 2) y la posibilidad de retirada. El principio de producto no negociable se mantiene sin cambios; esa revisión no propone todavía ninguna medida adicional, a la espera de la consulta externa.
 
-### 5.3 Pendiente de revisión jurídica interna
-
-- Plazo y regla de cómputo definitivos de `free_text_consent_events` (12 meses provisional) y su exclusión o no de `/delete-all`.
