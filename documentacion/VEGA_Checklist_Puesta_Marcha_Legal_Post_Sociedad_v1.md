@@ -1,0 +1,69 @@
+# VEGA — Checklist de Puesta en Marcha Legal tras la Constitución de la Sociedad v1
+
+**Estado:** Checklist operativo aprobado, pendiente de ejecución (la sociedad todavía no está constituida).
+
+**Naturaleza:** Documento operativo de ejecución, no un análisis jurídico nuevo. Se apoya en las
+conclusiones ya cerradas de `VEGA_Responsable_Tratamiento_Sociedad_v1.md`,
+`VEGA_Paquete_Revision_Juridica_Externa_v1.md`, `VEGA_LIA_Segmento_B_v1.md` y
+`VEGA_Analisis_Art14_Segmento_B_v1.md`. No reabre ninguna de esas decisiones, incluido el LIA del
+Segmento B (finalidad, necesidad y ponderación, cerrado) y la auditoría de código de `vega-api`.
+
+**Precondición de activación:** razón social, NIF, domicilio y email/canal de privacidad de la
+sociedad ya disponibles. Hasta entonces, este documento queda como checklist preparado, no como
+ejecución en curso.
+
+**Alcance:** ninguna fila de este documento implica tocar `ProblemStep.tsx`, lógica de
+`/mis-datos`, consentimiento, filtros, Supabase, Railway ni `vega-api` — son, en su mayoría,
+acciones administrativas/contractuales fuera del repositorio, salvo las filas de "Vega" que tocan
+contenido público (placeholders de responsable, canal de privacidad, `/datos-de-terceros`), que se
+ejecutarán solo cuando llegue ese momento, con su propia aprobación explícita.
+
+---
+
+## Supabase
+
+| Acción concreta | Cuándo se puede hacer | Evidencia a guardar | Criterio de completado | Bloquea tráfico real |
+|---|---|---|---|---|
+| Verificar/actualizar titularidad de cuenta y datos de facturación para que identifiquen a la sociedad (razón social, NIF, domicilio) | Solo con los 4 datos ya disponibles | Captura del panel de cuenta/facturación mostrando los datos de la sociedad, con fecha | Panel de Supabase muestra la sociedad como titular, no una persona física | Sí |
+| Verificar que el DPA incorporado automáticamente corresponde a esa relación ya alineada | Tras el punto anterior | Captura/export del DPA aceptado junto con la titularidad verificada | Confirmación documentada de que el DPA aplicable es el de la cuenta ya alineada con la sociedad | Sí |
+| Revisar subencargados vigentes de Supabase y confirmar que la ubicación (Irlanda, UE) sigue siendo la contratada | Puede iniciarse ya, sin esperar a los datos de la sociedad | Copia/enlace de la lista de subencargados y de la página de infraestructura consultadas, con fecha | Lista revisada sin cambios no documentados respecto a lo ya verificado | No (salvo que la revisión revele un cambio material) |
+
+## PostHog
+
+| Acción concreta | Cuándo se puede hacer | Evidencia a guardar | Criterio de completado | Bloquea tráfico real |
+|---|---|---|---|---|
+| Actualizar titularidad de cuenta/facturación a nombre de la sociedad | Solo con los 4 datos ya disponibles | Captura del panel de cuenta mostrando la sociedad como titular | Cuenta identifica a la sociedad, no a una persona física | Sí |
+| Generar y firmar el DPA específico (autoservicio) con los datos de la sociedad | Tras la actualización de titularidad | PDF/export del DPA firmado, con fecha y firmante con poder de representación | DPA firmado y archivado, identificando correctamente a la sociedad | Sí |
+| Confirmar que la región de procesamiento sigue siendo EU Cloud | Puede verificarse ya | Captura del panel de proyecto mostrando la región | Región EU Cloud confirmada en el momento de la firma del DPA | No (si se confirma sin cambios) / Sí (si se detecta un cambio de región) |
+| Revisar subencargados/transferencias vigentes de PostHog | Puede iniciarse ya | Copia/enlace de la lista de subprocesadores consultada, con fecha | Lista revisada sin cambios materiales no documentados | No (salvo cambio material) |
+
+## OpenAI
+
+| Acción concreta | Cuándo se puede hacer | Evidencia a guardar | Criterio de completado | Bloquea tráfico real |
+|---|---|---|---|---|
+| Actualizar relación comercial/cuenta (organización/facturación) a nombre de la sociedad | Solo con los 4 datos ya disponibles | Captura del panel de organización/facturación con los datos de la sociedad | Cuenta/organización identifica a la sociedad | Sí |
+| Verificar que el DPA ya incorporado al acuerdo de servicios corresponde a la relación ya alineada | Tras el punto anterior | Captura/export de los términos vigentes aceptados bajo la cuenta ya alineada | Confirmación documentada de que el DPA aplicable corresponde a la cuenta de la sociedad | Sí |
+| Confirmar en código que `store:false` sigue activo en las llamadas a la API de Responses (solo verificación, sin tocar código) | Puede verificarse ya | Captura del código/config relevante o del log de la llamada, con fecha | `store:false` confirmado activo, sin cambios respecto a lo ya documentado | No (si se confirma sin cambios) / Sí (si se detecta que ya no está activo) |
+| Revisar transferencias/subencargados y reconfirmar que se sigue usando el endpoint global (no el específico EEE/Suiza) | Puede iniciarse ya | Captura de la configuración de endpoint y de la página de subprocesadores, con fecha | Confirmado qué endpoint está activo; decisión documentada sobre mantener el global o evaluar el específico EEE/Suiza | No, salvo que se decida cambiar de endpoint como condición previa |
+| No afirmar una residencia UE específica de los datos mientras no esté efectivamente contratada | Aplica siempre | — | La documentación sigue sin afirmar residencia UE para OpenAI salvo contratación expresa | No es una acción, es una restricción de redacción a mantener |
+
+## Railway
+
+| Acción concreta | Cuándo se puede hacer | Evidencia a guardar | Criterio de completado | Bloquea tráfico real |
+|---|---|---|---|---|
+| Actualizar titularidad de cuenta/facturación a nombre de la sociedad | Solo con los 4 datos ya disponibles | Captura del panel de cuenta/facturación con los datos de la sociedad | Cuenta identifica a la sociedad | Sí |
+| Formalizar/aceptar el DPA mediante el procedimiento vigente en ese momento (sin asumir un mecanismo concreto) | Tras la actualización de titularidad; confirmar primero cuál es el procedimiento vigente en ese momento | Confirmación escrita del procedimiento usado + documento/registro de aceptación, con fecha y firmante con poder de representación si aplica | DPA formalizado/aceptado a nombre de la sociedad, con constancia del mecanismo usado | Sí |
+| Revisar subencargados/transferencias vigentes de Railway | Puede iniciarse ya | Copia/enlace de la documentación de subprocesadores consultada, con fecha | Lista revisada sin cambios materiales no documentados | No (salvo cambio material) |
+| Mantener como pendiente específico: ubicación física exacta de logs de plataforma y retención backend exacta | Se puede intentar confirmar en paralelo, sin condicionar la apertura a esa confirmación | Respuesta de soporte/documentación oficial de Railway sobre ubicación y retención de logs, si se obtiene | Confirmado (ideal) o sigue documentado como pendiente verificado | No bloquea por sí solo la apertura si continúa documentado como incertidumbre pendiente, la política mantiene una redacción prudente y no aparece ninguna evidencia nueva que cambie el riesgo. |
+
+## Vega (documentación pública e interna)
+
+| Acción concreta | Cuándo se puede hacer | Evidencia a guardar | Criterio de completado | Bloquea tráfico real |
+|---|---|---|---|---|
+| Sustituir placeholders del responsable en `app/privacy-policy/page.tsx` y `app/tos/page.tsx` por los datos reales | Solo con los 4 datos ya disponibles | Diff del cambio + captura de la página pública publicada | Política y TOS muestran la identidad real, sin ningún marcador de "pendiente" | Sí |
+| Activar el canal de privacidad (email real, monitorizado) | Solo con el email creado y alguien asignado a revisarlo | Confirmación de creación del email + asignación de monitorización, con fecha | Canal operativo, con cadencia de revisión acordada | Sí |
+| Actualizar `app/datos-de-terceros/page.tsx` con el canal real, cerrando operativamente la medida sustitutiva del art. 14.5.b | Tras responsable + canal | Diff del cambio + captura de la página publicada | Página muestra el canal real, ya no advierte que "todavía no existe" | Sí |
+| Actualizar documentación interna (`VEGA_Politica_Privacidad_Beta_v1.md`, `VEGA_Plan_Tecnico_Implementacion_Experimento.md`, `VEGA_LIA_Segmento_B_v1.md`, `VEGA_Analisis_Art14_Segmento_B_v1.md`) | Tras DPA y canal de privacidad | Diff de cada documento actualizado | Ningún documento interno sigue refiriéndose a "responsable pendiente de decisión" | No es un bloqueante técnico del flag, pero sí una condición de coherencia documental antes del GO final |
+| **Revisión jurídica interna final** — exclusivamente de las cuestiones todavía abiertas: categorías especiales de terceros en free_text; suficiencia práctica del checkbox único 6.1.a+9.2.a; conservación probatoria de `free_text_consent_events`; destinatarios art. 14.3.c (Railway/OpenAI/Supabase); postura imposibilidad/esfuerzo desproporcionado del 14.5.b; cualquier otra incertidumbre material concreta — no reabre el LIA | Puede iniciarse ya, en paralelo | Documento interno con la conclusión de cada punto, con fuentes oficiales citadas | Cada cuestión listada tiene una posición documentada internamente | Sí — bloqueante antes del GO |
+| **Consulta jurídica externa** | Solo si la revisión jurídica interna anterior lo determina | Si se realiza: el dictamen recibido, archivado | Si se determinó necesaria: dictamen recibido e incorporado. Si se determinó innecesaria: constancia documentada de esa conclusión | Condicional — solo bloquea si la revisión interna identifica una incertidumbre material cuya resolución resulte necesaria antes de abrir tráfico real. No debe interpretarse que Vega necesite obligatoriamente una consulta externa para lanzar. |
+| Mantener `EXPERIMENT_ACCEPTING_REAL_TRAFFIC = false` hasta completar todos los elementos marcados como bloqueantes para tráfico real y resolver cualquier condición que haya pasado a ser bloqueante como consecuencia de una revisión | Permanente hasta el cierre | — | El flag permanece en `false` hasta que todos los requisitos marcados como bloqueantes estén cerrados, incluida cualquier consulta externa u otra actuación que se haya determinado necesaria durante la revisión final | Es la condición de cierre, no una acción independiente |
