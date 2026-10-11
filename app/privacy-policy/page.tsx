@@ -533,11 +533,22 @@ const PrivacyPolicy = () => {
               <li>portabilidad.</li>
             </ul>
             <p>
+              Para ejercer estos derechos sobre tus propios datos puedes usar{" "}
+              <Link href="/mis-datos" className="link link-primary">
+                Mis datos
+              </Link>
+              : un resumen de los datos asociados a tu sesión, la retirada del consentimiento del
+              texto libre, y la eliminación completa de tus datos.
+            </p>
+            <p>
               La retirada del consentimiento se aplica a los tratamientos basados en
               consentimiento, como el email de la lista de espera y el texto libre opcional.
-              Puedes retirar el consentimiento para el texto libre desde &lsquo;Mis
-              datos&rsquo;. La retirada no afecta a otros tratamientos que se basan en una base
-              jurídica diferente, como el interés legítimo.
+              Puedes retirar el consentimiento para el texto libre desde{" "}
+              <Link href="/mis-datos" className="link link-primary">
+                Mis datos
+              </Link>
+              . La retirada no afecta a otros tratamientos que se basan en una base jurídica
+              diferente, como el interés legítimo.
             </p>
             <p>
               El canal específico de privacidad de la sociedad responsable se habilitará aquí
