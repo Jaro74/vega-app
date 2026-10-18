@@ -736,4 +736,25 @@ describe("SupabaseExperimentRepository — consentimiento del free_text", () => 
 
     await expect(repository.withdrawFreeTextConsent("attempt-1")).rejects.toThrow(/No se pudo retirar/);
   });
+
+  it("performDeleteAllOwnData llama a la RPC transaccional con p_user_id y traduce snake_case a camelCase", async () => {
+    const rpc = vi.fn(() =>
+      Promise.resolve({ data: [{ flow_attempts_affected: 2, waitlist_entry_deleted: true }], error: null })
+    );
+    const client = { rpc } as unknown as SupabaseClient;
+    const repository = new SupabaseExperimentRepository(client);
+
+    const result = await repository.performDeleteAllOwnData("user-1");
+
+    expect(rpc).toHaveBeenCalledWith("perform_delete_all_own_data", { p_user_id: "user-1" });
+    expect(result).toEqual({ flowAttemptsAffected: 2, waitlistEntryDeleted: true });
+  });
+
+  it("lanza un error legible si la RPC transaccional de /delete-all falla", async () => {
+    const rpc = vi.fn(() => Promise.resolve({ data: null, error: { message: "boom" } }));
+    const client = { rpc } as unknown as SupabaseClient;
+    const repository = new SupabaseExperimentRepository(client);
+
+    await expect(repository.performDeleteAllOwnData("user-1")).rejects.toThrow(/No se pudo ejecutar perform_delete_all_own_data/);
+  });
 });

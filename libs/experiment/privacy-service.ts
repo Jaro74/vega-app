@@ -1,4 +1,4 @@
-import type { ExperimentRepository, ExperimentUserRecord } from "@/libs/db/types";
+import type { DeleteAllOwnDataResult, ExperimentRepository, ExperimentUserRecord } from "@/libs/db/types";
 import type { PrivacyFlowAttemptSummary, PrivacySummaryResponse } from "@/types/api";
 
 // Logica de negocio del canal minimo de ejercicio de derechos para la
@@ -63,56 +63,31 @@ export async function buildPrivacySummary(
   };
 }
 
-export interface DeleteAllOwnDataResult {
-  flowAttemptsAffected: number;
-  waitlistEntryDeleted: boolean;
-}
+export type { DeleteAllOwnDataResult };
 
 // Borra el nucleo purgable de TODOS los intentos del usuario (no solo el
 // primario) mas, si existe, la entrada de waitlist de cualquiera de
-// ellos -- en la MISMA operacion, antes de que la ruta
+// ellos, y bloquea (nunca destruye) la evidencia de consentimiento del
+// free_text de esos intentos -- en una UNICA llamada transaccional
+// (perform_delete_all_own_data(), supabase/migrations/
+// 20260112000000_free_text_consent_cycles.sql), antes de que la ruta
 // (app/api/privacy/delete-all/route.ts) invalide las cookies de sesion.
-// Hacerlo asi, de forma comprehensiva, es deliberado: evita que el orden
-// en que se pulsen dos botones separados pueda dejar la waitlist
-// inalcanzable despues de invalidar la sesion.
+// Esta funcion es ahora un paso puro de traduccion: toda la
+// orquestacion (orden de operaciones, atomicidad, bloqueo de ciclos)
+// vive dentro de la propia RPC, no aqui -- sustituye a la version
+// anterior, que encadenaba 7 llamadas independientes sin ninguna
+// transaccion comun.
 //
 // Nunca toca experiment_users, flow_attempts (ni sus columnas
 // current_step/trigger/partner_precision/completed_at) ni
 // priced_access_intents: la invalidacion de sesion (responsabilidad de
 // la ruta, no de esta funcion) es lo que impide reabrir el flow_attempt
-// antiguo, asi que no hace falta resetear ningun estado tecnico para
-// evitar inconsistencias (ver analisis de consistencia ya discutido:
-// resolveNextStep(segment, null) nunca se ejecuta para este intento
-// porque la sesion que lo recuperaria ya no existe).
+// antiguo.
 export async function deleteAllOwnData(
   repository: ExperimentRepository,
   userId: string
 ): Promise<DeleteAllOwnDataResult> {
-  const attempts = await repository.listFlowAttemptsForUser(userId);
-  let waitlistEntryDeleted = false;
-
-  for (const attempt of attempts) {
-    await repository.deleteProblemContext(attempt.id);
-    // flow_attempts se conserva como cascara (nunca se borra aqui ni en
-    // la ruta): el "on delete cascade" de free_text_consent_events hacia
-    // flow_attempts nunca se dispara, asi que el borrado real tiene que
-    // ser este explicito. Nunca borra free_text_consent_versions
-    // (catalogo legal/versionado, sin datos personales del usuario).
-    await repository.deleteFreeTextConsentEvents(attempt.id);
-    await repository.deletePartnerInput(attempt.id);
-    await repository.deletePartnerDerivedProfile(attempt.id);
-    await repository.deletePreviewsForFlowAttempt(attempt.id);
-
-    const waitlistEntry = await repository.getWaitlistEntryByFlowAttempt(attempt.id);
-    if (waitlistEntry) {
-      await repository.deleteWaitlistEntry(attempt.id);
-      waitlistEntryDeleted = true;
-    }
-  }
-
-  await repository.deleteOwnBirthProfile(userId);
-
-  return { flowAttemptsAffected: attempts.length, waitlistEntryDeleted };
+  return repository.performDeleteAllOwnData(userId);
 }
 
 export interface DeleteOwnWaitlistEntryResult {

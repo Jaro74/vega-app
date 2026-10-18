@@ -83,6 +83,14 @@ export interface WithdrawFreeTextConsentResult {
   previewsDeleted: number;
 }
 
+// Resultado de performDeleteAllOwnData -- unica llamada transaccional
+// que sustituye a la orquestacion anterior de multiples deletes
+// independientes (ver libs/experiment/privacy-service.ts).
+export interface DeleteAllOwnDataResult {
+  flowAttemptsAffected: number;
+  waitlistEntryDeleted: boolean;
+}
+
 export interface BirthPlaceInput {
   placeLabel: string;
   countryCode: string;
@@ -375,15 +383,19 @@ export interface ExperimentRepository {
   // para los casos en que no hay nada que retirar).
   withdrawFreeTextConsent(flowAttemptId: string): Promise<WithdrawFreeTextConsentResult>;
 
-  // Canal de ejercicio de derechos: borra UNICAMENTE el historial de
-  // eventos de consentimiento del free_text de este flow_attempt.
-  // Necesario porque flow_attempts se conserva como cascara tras
-  // deleteAllOwnData (nunca se borra la fila), asi que el
-  // "on delete cascade" de free_text_consent_events hacia flow_attempts
-  // nunca se dispara por esa via -- este metodo es el borrado real.
-  // Nunca toca free_text_consent_versions (catalogo legal/versionado de
-  // Vega, sin datos personales del usuario). Idempotente.
-  deleteFreeTextConsentEvents(flowAttemptId: string): Promise<void>;
+  // Canal de ejercicio de derechos (/delete-all): unica llamada
+  // transaccional que sustituye a la orquestacion anterior de multiples
+  // deletes independientes. Dentro de la misma transaccion: cierra con
+  // 'erasure_requested' cualquier ciclo de consentimiento del free_text
+  // todavia abierto, bloquea (nunca destruye) la evidencia de todos los
+  // ciclos activos del intento sin reiniciar su ordinary_destroy_after
+  // ya fijado, borra el nucleo purgable (problem_context, partner_input,
+  // partner_derived_profile, previews, waitlist) de TODOS los intentos
+  // del usuario, y borra el perfil propio una sola vez. Nunca toca
+  // experiment_users, flow_attempts ni priced_access_intents. Idempotente
+  // y recuperable: cualquier fallo revierte la transaccion entera, un
+  // reintento completo converge siempre al mismo estado final.
+  performDeleteAllOwnData(userId: string): Promise<DeleteAllOwnDataResult>;
 
   upsertOwnBirthProfile(input: UpsertOwnBirthProfileInput): Promise<UserBirthProfileRecord>;
   getOwnBirthProfileByUser(userId: string): Promise<UserBirthProfileRecord | null>;

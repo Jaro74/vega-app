@@ -180,11 +180,11 @@ describe("privacy-service", () => {
       expect(await repository.getWaitlistEntryByFlowAttempt(attempt.id)).toBeNull();
     });
 
-    it("borra el historial de free_text_consent_events del intento (no depende de on delete cascade hacia flow_attempts, que se conserva)", async () => {
+    it("bloquea (no destruye) el ciclo de consentimiento del free_text del intento, que deja de ser visible operativamente", async () => {
       const { user, attempt } = await createUserWithAttempt();
       await fillCoreData(attempt.id, user.id);
 
-      // Antes: un evento 'granted' real, creado por la misma RPC/estado
+      // Antes: un ciclo 'granted' real, creado por la misma RPC/estado
       // que usa el flujo de produccion -- no un upsert directo.
       const granted = await repository.submitProblemContextWithFreeText({
         flowAttemptId: attempt.id,
@@ -196,12 +196,14 @@ describe("privacy-service", () => {
 
       await deleteAllOwnData(repository, user.id);
 
-      // Despues: no debe quedar ningun evento para este intento. No hay
-      // un metodo de lectura publico sobre free_text_consent_events (es
-      // un historial de auditoria, no un dato que la app consulte
+      // Despues: el ciclo queda bloqueado (evidencia probatoria
+      // conservada conforme al art. 32 LOPDGDD), no destruido -- pero
+      // deja de participar en cualquier logica operativa. No hay un
+      // metodo de lectura publico sobre el estado interno de los ciclos
+      // (son un historial de auditoria, no un dato que la app consulte
       // directamente) -- se verifica por el unico contrato publico que
-      // depende de su estado: withdrawFreeTextConsent solo devuelve
-      // "no_consent" cuando no existe ningun evento previo.
+      // depende de ese estado: withdrawFreeTextConsent solo devuelve
+      // "no_consent" cuando no hay ningun ciclo visible operativamente.
       const afterDelete = await repository.withdrawFreeTextConsent(attempt.id);
       expect(afterDelete.outcome).toBe("no_consent");
 

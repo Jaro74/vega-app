@@ -610,3 +610,167 @@ describe("InMemoryExperimentRepository - Sprint 4", () => {
     expect(await repository.getWaitlistEntryByFlowAttempt("attempt-inexistente")).toBeNull();
   });
 });
+
+// Modelo de ciclos de consentimiento del free_text (ver
+// supabase/migrations/20260112000000_free_text_consent_cycles.sql):
+// granted -> withdrawn|expired|erasure_requested. La maquina de estados
+// de mas alto nivel (version_conflict desde submitProblem) ya esta
+// cubierta en tests/unit/onboarding-service.test.ts -- aqui se prueba
+// directamente el contrato de ciclos del repositorio.
+describe("InMemoryExperimentRepository - ciclos de consentimiento del free_text", () => {
+  let repository: InMemoryExperimentRepository;
+
+  beforeEach(() => {
+    repository = new InMemoryExperimentRepository();
+  });
+
+  it("granted -> withdrawn: retira correctamente y limpia el texto", async () => {
+    const granted = await repository.submitProblemContextWithFreeText({
+      flowAttemptId: "attempt-ft-1",
+      trigger: "career",
+      freeText: "un texto",
+      consentVersion: "v2",
+    });
+    expect(granted.outcome).toBe("ok");
+
+    const withdrawn = await repository.withdrawFreeTextConsent("attempt-ft-1");
+    expect(withdrawn.outcome).toBe("withdrawn");
+
+    const context = await repository.getProblemContextByFlowAttempt("attempt-ft-1");
+    expect(context?.freeText).toBeNull();
+    expect(context?.textProvided).toBe(false);
+  });
+
+  it("granted -> expired (simulado): withdrawFreeTextConsent devuelve already_expired", async () => {
+    await repository.submitProblemContextWithFreeText({
+      flowAttemptId: "attempt-ft-2",
+      trigger: "career",
+      freeText: "un texto",
+      consentVersion: "v2",
+    });
+
+    await repository.simulatePurgeExpiredFreeTextConsentForTests("attempt-ft-2");
+
+    const result = await repository.withdrawFreeTextConsent("attempt-ft-2");
+    expect(result.outcome).toBe("already_expired");
+  });
+
+  it("doble retirada: la segunda devuelve already_withdrawn, sin duplicar el cierre", async () => {
+    await repository.submitProblemContextWithFreeText({
+      flowAttemptId: "attempt-ft-3",
+      trigger: "career",
+      freeText: "un texto",
+      consentVersion: "v2",
+    });
+
+    await repository.withdrawFreeTextConsent("attempt-ft-3");
+    const second = await repository.withdrawFreeTextConsent("attempt-ft-3");
+
+    expect(second.outcome).toBe("already_withdrawn");
+  });
+
+  it("sin ningun ciclo previo, withdrawFreeTextConsent devuelve no_consent", async () => {
+    const result = await repository.withdrawFreeTextConsent("attempt-ft-nunca-existio");
+    expect(result.outcome).toBe("no_consent");
+  });
+
+  it("version_conflict: ciclo abierto con otra version no se resuelve silenciosamente", async () => {
+    await repository.submitProblemContextWithFreeText({
+      flowAttemptId: "attempt-ft-4",
+      trigger: "career",
+      freeText: "texto v1",
+      consentVersion: "v1",
+    });
+
+    const conflict = await repository.submitProblemContextWithFreeText({
+      flowAttemptId: "attempt-ft-4",
+      trigger: "career",
+      freeText: "texto v2",
+      consentVersion: "v2",
+    });
+
+    expect(conflict.outcome).toBe("version_conflict");
+    const context = await repository.getProblemContextByFlowAttempt("attempt-ft-4");
+    expect(context?.freeText).toBe("texto v1");
+  });
+
+  it("performDeleteAllOwnData bloquea el ciclo (no lo destruye): withdrawFreeTextConsent pasa a no_consent", async () => {
+    const user = await repository.findOrCreateExperimentUser({
+      anonymousUserId: "33333333-3333-3333-3333-333333333333",
+      experimentId: "vega_beachhead_v1",
+      acquisition,
+      isTest: true,
+    });
+    const attempt = await repository.createFlowAttempt({ userId: user.id, segment: "A" });
+
+    await repository.submitProblemContextWithFreeText({
+      flowAttemptId: attempt.id,
+      trigger: "career",
+      freeText: "un texto con consentimiento",
+      consentVersion: "v2",
+    });
+
+    const result = await repository.performDeleteAllOwnData(user.id);
+    expect(result).toEqual({ flowAttemptsAffected: 1, waitlistEntryDeleted: false });
+
+    expect(await repository.getProblemContextByFlowAttempt(attempt.id)).toBeNull();
+    expect((await repository.withdrawFreeTextConsent(attempt.id)).outcome).toBe("no_consent");
+  });
+
+  it("nuevo ciclo despues de performDeleteAllOwnData: el mismo flow_attempt_id puede volver a usar free_text de forma independiente", async () => {
+    const user = await repository.findOrCreateExperimentUser({
+      anonymousUserId: "44444444-4444-4444-4444-444444444444",
+      experimentId: "vega_beachhead_v1",
+      acquisition,
+      isTest: true,
+    });
+    const attempt = await repository.createFlowAttempt({ userId: user.id, segment: "A" });
+
+    await repository.submitProblemContextWithFreeText({
+      flowAttemptId: attempt.id,
+      trigger: "career",
+      freeText: "primer ciclo",
+      consentVersion: "v2",
+    });
+    await repository.performDeleteAllOwnData(user.id);
+
+    // El ciclo bloqueado nunca debe condicionar este segundo ciclo: ni
+    // como version_conflict, ni dejando el texto nuevo sin un ciclo que
+    // lo respalde.
+    const secondCycle = await repository.submitProblemContextWithFreeText({
+      flowAttemptId: attempt.id,
+      trigger: "career",
+      freeText: "segundo ciclo, independiente del primero",
+      consentVersion: "v2",
+    });
+    expect(secondCycle.outcome).toBe("ok");
+
+    const context = await repository.getProblemContextByFlowAttempt(attempt.id);
+    expect(context?.freeText).toBe("segundo ciclo, independiente del primero");
+
+    const withdrawn = await repository.withdrawFreeTextConsent(attempt.id);
+    expect(withdrawn.outcome).toBe("withdrawn");
+  });
+
+  it("performDeleteAllOwnData es idempotente: ejecutarlo dos veces no lanza ni cambia el resultado", async () => {
+    const user = await repository.findOrCreateExperimentUser({
+      anonymousUserId: "55555555-5555-5555-5555-555555555555",
+      experimentId: "vega_beachhead_v1",
+      acquisition,
+      isTest: true,
+    });
+    const attempt = await repository.createFlowAttempt({ userId: user.id, segment: "A" });
+    await repository.submitProblemContextWithFreeText({
+      flowAttemptId: attempt.id,
+      trigger: "career",
+      freeText: "un texto",
+      consentVersion: "v2",
+    });
+
+    await repository.performDeleteAllOwnData(user.id);
+    const second = await repository.performDeleteAllOwnData(user.id);
+
+    expect(second).toEqual({ flowAttemptsAffected: 1, waitlistEntryDeleted: false });
+    expect((await repository.withdrawFreeTextConsent(attempt.id)).outcome).toBe("no_consent");
+  });
+});

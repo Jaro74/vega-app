@@ -188,7 +188,7 @@ describe("selectSegment", () => {
       async withdrawFreeTextConsent() {
         throw new Error("no usado en este test");
       },
-      async deleteFreeTextConsentEvents() {
+      async performDeleteAllOwnData() {
         throw new Error("no usado en este test");
       },
       async upsertOwnBirthProfile() {

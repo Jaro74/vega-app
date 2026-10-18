@@ -4,6 +4,7 @@ import type {
   CreatePreviewInput,
   CreatePricedAccessIntentInput,
   CreateWaitlistEntryInput,
+  DeleteAllOwnDataResult,
   ExperimentRepository,
   ExperimentUserRecord,
   FindOrCreateUserInput,
@@ -26,6 +27,17 @@ import type {
 } from "./types";
 import { UniqueConstraintViolationError } from "./types";
 
+// Replica en memoria de una fila de free_text_consent_cycles (ver
+// supabase/migrations/20260112000000_free_text_consent_cycles.sql).
+// closeReason null <=> ciclo abierto (closedSeq is null en el driver
+// real) -- aqui no hace falta modelar los seq de los eventos
+// individuales, porque ninguna ruta de la aplicacion los lee jamas.
+interface FreeTextConsentCycle {
+  closeReason: "withdrawn" | "expired" | "erasure_requested" | null;
+  consentVersion: string;
+  lifecycleState: "active" | "blocked";
+}
+
 // Implementacion de desarrollo/test, solo mientras este sandbox no tiene
 // un proyecto Supabase real conectado (ver libs/db/index.ts). Cumple
 // exactamente el mismo contrato e invariantes que
@@ -46,12 +58,12 @@ export class InMemoryExperimentRepository implements ExperimentRepository {
   private readonly pricedAccessIntentByFlowAttempt = new Map<string, PricedAccessIntentRecord>();
   private readonly waitlistEntryByFlowAttempt = new Map<string, WaitlistRecord>();
   // Replica en memoria, sin lock real (innecesario en un proceso
-  // single-threaded entre awaits), de la misma maquina de estados append-only
-  // que supabase/migrations/20260110000000_free_text_consent.sql.
-  private readonly freeTextConsentEventsByFlowAttempt = new Map<
-    string,
-    { action: "granted" | "withdrawn" | "expired"; consentVersion: string }[]
-  >();
+  // single-threaded entre awaits), del modelo de ciclos de
+  // supabase/migrations/20260112000000_free_text_consent_cycles.sql:
+  // una entrada por ciclo granted -> terminal (nunca por evento
+  // individual, que es lo unico que el driver real persiste de forma
+  // append-only y que ninguna ruta de la aplicacion necesita leer).
+  private readonly freeTextConsentCyclesByFlowAttempt = new Map<string, FreeTextConsentCycle[]>();
 
   async findOrCreateExperimentUser(input: FindOrCreateUserInput): Promise<ExperimentUserRecord> {
     const existing = this.usersByAnonymousId.get(input.anonymousUserId);
@@ -174,10 +186,27 @@ export class InMemoryExperimentRepository implements ExperimentRepository {
     this.problemContextByFlowAttempt.delete(flowAttemptId);
   }
 
-  // Replica la maquina de estados de la RPC real: ninguno/withdrawn/expired
-  // -> nuevo granted; granted con la misma consent_version -> solo
-  // actualiza el texto, sin evento nuevo; granted con version distinta ->
-  // version_conflict, no escribe nada.
+  // Ciclo activo (lifecycleState "active") mas reciente de un intento --
+  // puede estar abierto (closeReason null) o cerrado sin haber pasado
+  // todavia por performDeleteAllOwnData. Replica exactamente lo que
+  // active_free_text_consent_cycles devuelve con
+  // "order by opened_seq desc limit 1": al ser los ciclos siempre
+  // estrictamente secuenciales por intento, el ultimo elemento activo
+  // del array es siempre el mas reciente.
+  private latestActiveCycle(flowAttemptId: string): FreeTextConsentCycle | null {
+    const cycles = this.freeTextConsentCyclesByFlowAttempt.get(flowAttemptId) ?? [];
+    for (let i = cycles.length - 1; i >= 0; i -= 1) {
+      const cycle = cycles[i];
+      if (cycle !== undefined && cycle.lifecycleState === "active") return cycle;
+    }
+    return null;
+  }
+
+  // Replica la maquina de estados de submit_problem_context_with_free_text():
+  // sin ciclo abierto -> nuevo ciclo 'granted'; ciclo abierto con la
+  // misma consent_version -> solo actualiza el texto, sin ciclo nuevo;
+  // ciclo abierto con version distinta -> version_conflict, no escribe
+  // nada.
   async submitProblemContextWithFreeText(
     input: SubmitProblemContextWithFreeTextInput
   ): Promise<SubmitProblemContextWithFreeTextResult> {
@@ -185,15 +214,16 @@ export class InMemoryExperimentRepository implements ExperimentRepository {
       throw new Error("submitProblemContextWithFreeText exige un free_text no vacio");
     }
 
-    const events = this.freeTextConsentEventsByFlowAttempt.get(input.flowAttemptId) ?? [];
-    const last = events[events.length - 1] ?? null;
+    const cycles = this.freeTextConsentCyclesByFlowAttempt.get(input.flowAttemptId) ?? [];
+    const open = this.latestActiveCycle(input.flowAttemptId);
+    const openCycle = open && open.closeReason === null ? open : null;
 
-    if (last === null || last.action === "withdrawn" || last.action === "expired") {
-      events.push({ action: "granted", consentVersion: input.consentVersion });
-      this.freeTextConsentEventsByFlowAttempt.set(input.flowAttemptId, events);
-    } else if (last.action === "granted" && last.consentVersion === input.consentVersion) {
+    if (!openCycle) {
+      cycles.push({ closeReason: null, consentVersion: input.consentVersion, lifecycleState: "active" });
+      this.freeTextConsentCyclesByFlowAttempt.set(input.flowAttemptId, cycles);
+    } else if (openCycle.consentVersion === input.consentVersion) {
       // Consentimiento vigente de la misma version: solo se actualiza el
-      // texto, sin duplicar el evento.
+      // texto, sin ciclo nuevo.
     } else {
       return { outcome: "version_conflict" };
     }
@@ -211,13 +241,23 @@ export class InMemoryExperimentRepository implements ExperimentRepository {
     return { outcome: "ok" };
   }
 
+  // Replica withdraw_free_text_consent(): conserva el contrato de 4
+  // outcomes consultando unicamente el ciclo activo mas reciente -- el
+  // equivalente a leer active_free_text_consent_cycles, nunca a un
+  // historial de eventos bloqueados (que tras performDeleteAllOwnData
+  // deja de tener ningun ciclo "active" visible aqui).
   async withdrawFreeTextConsent(flowAttemptId: string): Promise<WithdrawFreeTextConsentResult> {
-    const events = this.freeTextConsentEventsByFlowAttempt.get(flowAttemptId) ?? [];
-    const last = events[events.length - 1] ?? null;
+    const cycle = this.latestActiveCycle(flowAttemptId);
 
-    if (last === null) return { outcome: "no_consent", previewsDeleted: 0 };
-    if (last.action === "withdrawn") return { outcome: "already_withdrawn", previewsDeleted: 0 };
-    if (last.action === "expired") return { outcome: "already_expired", previewsDeleted: 0 };
+    if (!cycle) return { outcome: "no_consent", previewsDeleted: 0 };
+    if (cycle.closeReason === "withdrawn") return { outcome: "already_withdrawn", previewsDeleted: 0 };
+    if (cycle.closeReason === "expired") return { outcome: "already_expired", previewsDeleted: 0 };
+    if (cycle.closeReason !== null) {
+      // 'erasure_requested' es estructuralmente imposible aqui: ese
+      // cierre bloquea el ciclo en el mismo paso (performDeleteAllOwnData),
+      // por lo que nunca queda "active".
+      throw new Error(`close_reason inesperado en ciclo activo no abierto: ${cycle.closeReason}`);
+    }
 
     const previews = this.previewsByFlowAttempt.get(flowAttemptId) ?? [];
     const remaining = previews.filter((preview) => !preview.usedFreeText);
@@ -229,14 +269,28 @@ export class InMemoryExperimentRepository implements ExperimentRepository {
       this.problemContextByFlowAttempt.set(flowAttemptId, { ...existingContext, freeText: null, textProvided: false });
     }
 
-    events.push({ action: "withdrawn", consentVersion: last.consentVersion });
-    this.freeTextConsentEventsByFlowAttempt.set(flowAttemptId, events);
+    cycle.closeReason = "withdrawn";
 
     return { outcome: "withdrawn", previewsDeleted };
   }
 
-  async deleteFreeTextConsentEvents(flowAttemptId: string): Promise<void> {
-    this.freeTextConsentEventsByFlowAttempt.delete(flowAttemptId);
+  // Solo para tests: replica el tramo relativo al free_text de
+  // purge_expired_experiment_personal_data() (el cron real, nunca
+  // invocado desde TypeScript) -- cierra el ciclo abierto vigente con
+  // 'expired' y borra problem_context, exactamente como hace la funcion
+  // SQL cuando problem_context.delete_after ya vencio. No forma parte de
+  // ExperimentRepository: ninguna ruta de la aplicacion puede alcanzar
+  // este metodo, solo el codigo de test que instancia esta clase
+  // directamente.
+  async simulatePurgeExpiredFreeTextConsentForTests(flowAttemptId: string): Promise<void> {
+    const cycle = this.latestActiveCycle(flowAttemptId);
+    const context = this.problemContextByFlowAttempt.get(flowAttemptId);
+
+    if (cycle && cycle.closeReason === null && context?.textProvided) {
+      cycle.closeReason = "expired";
+    }
+
+    this.problemContextByFlowAttempt.delete(flowAttemptId);
   }
 
   async upsertOwnBirthProfile(input: UpsertOwnBirthProfileInput): Promise<UserBirthProfileRecord> {
@@ -415,5 +469,41 @@ export class InMemoryExperimentRepository implements ExperimentRepository {
 
   async deleteWaitlistEntry(flowAttemptId: string): Promise<void> {
     this.waitlistEntryByFlowAttempt.delete(flowAttemptId);
+  }
+
+  // Replica perform_delete_all_own_data(): bloquea (nunca destruye) los
+  // ciclos de consentimiento del free_text de cada intento del usuario
+  // antes de borrar su contenido, despues borra el nucleo purgable de
+  // TODOS sus intentos y, por ultimo, el perfil propio una sola vez.
+  // Sin transaccion real que revertir (este driver es un sandbox
+  // sincrono entre awaits), pero replica el mismo resultado final que
+  // la RPC produce cuando no hay ningun fallo a mitad.
+  async performDeleteAllOwnData(userId: string): Promise<DeleteAllOwnDataResult> {
+    const attempts = await this.listFlowAttemptsForUser(userId);
+    let waitlistEntryDeleted = false;
+
+    for (const attempt of attempts) {
+      const cycles = this.freeTextConsentCyclesByFlowAttempt.get(attempt.id) ?? [];
+      for (const cycle of cycles) {
+        if (cycle.lifecycleState !== "active") continue;
+        if (cycle.closeReason === null) cycle.closeReason = "erasure_requested";
+        cycle.lifecycleState = "blocked";
+      }
+
+      await this.deleteProblemContext(attempt.id);
+      await this.deletePartnerInput(attempt.id);
+      await this.deletePartnerDerivedProfile(attempt.id);
+      await this.deletePreviewsForFlowAttempt(attempt.id);
+
+      const waitlistEntry = await this.getWaitlistEntryByFlowAttempt(attempt.id);
+      if (waitlistEntry) {
+        await this.deleteWaitlistEntry(attempt.id);
+        waitlistEntryDeleted = true;
+      }
+    }
+
+    await this.deleteOwnBirthProfile(userId);
+
+    return { flowAttemptsAffected: attempts.length, waitlistEntryDeleted };
   }
 }

@@ -10,6 +10,7 @@ import type {
   CreatePreviewInput,
   CreatePricedAccessIntentInput,
   CreateWaitlistEntryInput,
+  DeleteAllOwnDataResult,
   ExperimentRepository,
   ExperimentUserRecord,
   FindOrCreateUserInput,
@@ -543,18 +544,26 @@ export class SupabaseExperimentRepository implements ExperimentRepository {
     return { outcome: row.outcome, previewsDeleted: row.previews_deleted };
   }
 
-  // Canal de ejercicio de derechos: borrado explicito del historial de
-  // eventos (deleteAllOwnData no puede depender de on delete cascade
-  // hacia flow_attempts, que se conserva como cascara). Nunca toca
-  // free_text_consent_versions.
-  async deleteFreeTextConsentEvents(flowAttemptId: string): Promise<void> {
-    const { error } = await this.client
-      .from("free_text_consent_events")
-      .delete()
-      .eq("flow_attempt_id", flowAttemptId);
+  // Canal de ejercicio de derechos (/delete-all): unica llamada a la RPC
+  // transaccional perform_delete_all_own_data() (supabase/migrations/
+  // 20260112000000_free_text_consent_cycles.sql). Sustituye a la
+  // orquestacion anterior de multiples deletes PostgREST independientes
+  // -- toda la logica (bloqueo de ciclos, borrado del nucleo purgable)
+  // vive ahora dentro de la propia transaccion de la funcion.
+  async performDeleteAllOwnData(userId: string): Promise<DeleteAllOwnDataResult> {
+    const { data, error } = await this.client.rpc("perform_delete_all_own_data", {
+      p_user_id: userId,
+    });
+
     if (error) {
-      throw new Error(`No se pudo borrar free_text_consent_events: ${error.message}`);
+      throw new Error(`No se pudo ejecutar perform_delete_all_own_data: ${error.message}`);
     }
+
+    const row = (Array.isArray(data) ? data[0] : data) as {
+      flow_attempts_affected: number;
+      waitlist_entry_deleted: boolean;
+    };
+    return { flowAttemptsAffected: row.flow_attempts_affected, waitlistEntryDeleted: row.waitlist_entry_deleted };
   }
 
   // upsert con onConflict: user_id es unique en user_birth_profile, asi
