@@ -2,6 +2,20 @@
 
 **Estado:** Revisión jurídica interna cerrada (2026-10-11). Conclusión: **CONSULTA EXTERNA RECOMENDADA**.
 
+**Estado actualizado (2026-10-22):** Consulta externa realizada. Resultado: decisión de producto
+de eliminar la recogida de `free_text` en Segmento B, sustituyéndola por contexto estructurado
+cerrado (`relationship_focus`, `user_emotional_state`, `impact_intensity`), en lugar de sostener
+una excepción del art. 9.2 para el subconjunto de terceros identificables descrito en la sección
+14. El supuesto concreto que originó esta revisión deja de estar presente en el diseño beta de
+Segmento B, al haberse eliminado la recogida de texto libre en ese segmento. **Esto no es una
+conclusión general sobre el art. 9 y menciones de terceros en texto libre**, ni implica
+cumplimiento jurídico global garantizado para Vega; una futura reintroducción de texto libre en un
+contexto con terceros —en Segmento B o en cualquier otro— exigiría una nueva revisión bajo este
+mismo marco. Segmento A no se ve afectado: nunca tuvo datos de un tercero en juego, conserva su
+`free_text` y consentimiento v2 sin cambios. El análisis jurídico de las secciones 1-15 de este
+documento se conserva íntegro como registro histórico del razonamiento que motivó la consulta y la
+decisión.
+
 **Naturaleza:** Análisis preparatorio, no vinculante, basado en fuentes oficiales (RGPD/EUR-Lex,
 jurisprudencia del TJUE). Distingue **[HECHO]** / **[NORMA/CRITERIO OFICIAL]** (con cita) /
 **[INTERPRETACIÓN]** (no vinculante). No sustituye la consulta jurídica externa que esta misma

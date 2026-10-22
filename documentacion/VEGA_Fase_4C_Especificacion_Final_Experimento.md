@@ -470,6 +470,12 @@ other
 
 ## Pantalla B2 — contexto libre
 
+> **Nota de superseding (2026-10-22):** esta pantalla queda sustituida en producción por contexto
+> estructurado cerrado (`relationship_focus` / `user_emotional_state` / `impact_intensity`, sin
+> texto libre ni opción "Other") — ver `types/experiment.ts` y la migración
+> `20260113000000_segment_b_structured_context.sql`. Se conserva el texto original de esta sección
+> como registro de la especificación de partida, no como comportamiento vigente.
+
 ### Título
 
 # Si quieres, cuéntale a Vega qué está ocurriendo

@@ -228,10 +228,20 @@ generación de previews es el siguiente:
   estado entre peticiones.
 - No se envían a OpenAI: el email de la waitlist, el `anonymousUserId`, el
   `flowAttemptId`, ni la fecha, hora o lugar de nacimiento, ni coordenadas.
-- Sí se envían: la categoría del problema (`trigger`), el texto libre que
-  el usuario escribe sobre su situación, los indicadores de
-  precisión/conocimiento de hora, y la evidencia astrológica ya calculada
-  por Vega/Railway (sin datos de nacimiento en bruto).
+- Sí se envían: la categoría del problema (`trigger`); los indicadores de
+  precisión/conocimiento de hora; y la evidencia astrológica ya calculada
+  por Vega/Railway (sin datos de nacimiento en bruto) — en Segmento B, esa
+  evidencia astrológica es la de la sinastría, derivada de ambas cartas
+  cuando corresponde, nunca los datos de nacimiento en bruto de ninguna de
+  las dos personas.
+- El contexto adicional sobre la situación del usuario difiere por
+  segmento: **en Segmento A**, el texto libre que el usuario escribe
+  sobre su situación (cuando lo hay). **En Segmento B, Vega envía un
+  contexto estructurado derivado de tres selecciones cerradas sobre cómo
+  el usuario vive la relación. Estas selecciones no contienen texto libre
+  ni describen categorías especiales de la segunda persona** — nunca se
+  envía a OpenAI ningún dato identificativo o de categoría especial de la
+  segunda persona.
 - Esta configuración reduce la persistencia de OpenAI sobre estas llamadas
   concretas, pero no sustituye la revisión contractual pendiente: el
   tratamiento técnico que OpenAI pueda realizar fuera de esa persistencia

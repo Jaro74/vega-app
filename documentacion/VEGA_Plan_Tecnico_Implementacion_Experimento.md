@@ -788,6 +788,13 @@ create table public.problem_context (
 
 No exponer al cliente.
 
+**Nota de superseding (2026-10-22):** este es el esquema original de Sprint 2, común a ambos
+segmentos en ese momento. Desde `20260113000000_segment_b_structured_context.sql`, `free_text` es
+exclusivo de Segmento A (Segmento B lo tiene siempre a `NULL`, rechazado server-side si se intenta
+enviar), y la tabla incorpora además `relationship_focus`, `user_emotional_state` e
+`impact_intensity` (exclusivos de Segmento B) — ver `types/experiment.ts` y
+`libs/db/supabase-repository.ts`.
+
 ### Retención automática (verificado, implementación real)
 
 Implementado mediante

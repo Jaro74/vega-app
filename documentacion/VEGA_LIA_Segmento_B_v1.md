@@ -139,6 +139,13 @@ Razonamiento:
 | Art. 22 — aplicabilidad | Art. 22.1 RGPD; WP251 | No parece aplicable con los hechos actuales; no se afirma ni descarta de forma definitiva | Moderado | Cuestión adicional e independiente de las 6 preguntas del segmento B — plantear por separado si se quiere someter a asesoría |
 | Resultado global del LIA | Síntesis de lo anterior | Defendible bajo interés legítimo, riesgo residual moderado aceptado y documentado | Moderado | Resolver, de forma independiente, art. 14 y la identificación efectiva de la futura sociedad responsable del tratamiento antes de tráfico real |
 
+**Nota de cierre (2026-10-22):** el vector de riesgo de la fila "Art. 9 — texto libre" ha sido
+eliminado del diseño de Segmento B — ya no existe `free_text` en B, sustituido por contexto
+estructurado cerrado (ver `VEGA_Revision_Art9_Terceros_FreeText_v1.md`, "Estado actualizado"). Esta
+fila queda como registro histórico del análisis que motivó esa decisión; el resto de la matriz
+(datos estructurados de nacimiento, ponderación, art. 14) no se ve afectado y sigue vigente sin
+cambios.
+
 ---
 
 **Nota final:** este LIA no sustituye el análisis del art. 14 (bloque 5) ni las 6 preguntas abiertas de `VEGA_Segmento_B_Revision_Juridica_v1.md`, que siguen siendo responsabilidad de la revisión jurídica externa.
