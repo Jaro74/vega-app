@@ -6,6 +6,13 @@ import config from "@/config";
 // Usa este boton si el chat esta oculto en algunas rutas. config.js tiene onlyShowOnRoutes configurado a ["/"] asi que estara oculto en todas las rutas excepto la pagina principal.
 // Si Crisp no esta habilitado, abrira el email de soporte en el cliente de correo predeterminado.
 const ButtonSupport = () => {
+  // Sin Crisp ni un email de soporte configurado, no hay ningun canal real
+  // al que enlazar -- no renderizar el boton evita un "mailto:" invalido o
+  // una via de soporte falsa (ver config.ts, resend.supportEmail).
+  if (!config.crisp?.id && !config.resend?.supportEmail) {
+    return null;
+  }
+
   const handleClick = () => {
     if (config.crisp?.id) {
       Crisp.chat.show();

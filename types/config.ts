@@ -26,7 +26,10 @@ export type Theme =
 export interface ConfigProps {
   appName: string;
   appDescription: string;
-  domainName: string;
+  // No hay domainName aqui: "ialab.dev" era heredado de la plantilla, no
+  // el dominio de Vega. La URL publica depende de la variable de entorno
+  // SITE_URL (unica fuente, leida en libs/seo.tsx y next-sitemap.config.js),
+  // nunca de un valor fijo en este archivo.
   crisp: {
     id?: string;
     onlyShowOnRoutes?: string[];
@@ -50,8 +53,12 @@ export interface ConfigProps {
     cdn?: string;
   };
   resend: {
-    fromNoReply: string;
-    fromAdmin: string;
+    // Opcionales a proposito: Vega todavia no tiene una identidad de envio
+    // propia (ver config.ts) -- sendEmail() en libs/resend.ts exige estos
+    // valores en tiempo de llamada, no aqui, para no forzar un remitente
+    // heredado del boilerplate ni uno inventado.
+    fromNoReply?: string;
+    fromAdmin?: string;
     supportEmail?: string;
   };
   colors: {

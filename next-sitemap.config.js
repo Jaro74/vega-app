@@ -1,6 +1,16 @@
+// SITE_URL es la unica fuente de verdad del dominio publico (misma
+// variable que usa libs/seo.tsx) -- sin ningun fallback: ni shipfa.st
+// (boilerplate original), ni ialab.dev (heredado de la plantilla IA LAB,
+// nunca fue el dominio real de Vega), ni el dominio de Vercel. Generar un
+// sitemap/robots con un dominio incorrecto es peor que fallar aqui.
+if (!process.env.SITE_URL) {
+  throw new Error(
+    "SITE_URL no esta configurado. Define SITE_URL (en Vercel, o en .env.local para generar un sitemap de prueba) con el dominio publico real de Vega antes de ejecutar 'npm run build' -- no hay ningun dominio por defecto seguro."
+  );
+}
+
 module.exports = {
-  // REQUIRED: add your own domain name here (e.g. https://shipfa.st),
-  siteUrl: process.env.SITE_URL || "https://shipfa.st",
+  siteUrl: process.env.SITE_URL,
   generateRobotsTxt: true,
   // use this to exclude routes from the sitemap (i.e. a user dashboard). By default, NextJS app router metadata files are excluded (https://nextjs.org/docs/app/api-reference/file-conventions/metadata)
   // /explorar y /flow excluidas mientras el trafico real del experimento

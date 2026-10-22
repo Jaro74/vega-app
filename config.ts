@@ -12,8 +12,11 @@ const config = {
   appName: "Vega",
   // REQUERIDO: una breve descripcion de tu app para etiquetas SEO (puede sobrescribirse)
   appDescription: "Explora lecturas astrológicas personalizadas con Vega.",
-  // REQUERIDO (sin https://, sin barra al final, solo el dominio)
-  domainName: "ialab.dev",
+  // Sin domainName aqui: "ialab.dev" era heredado de la plantilla, no es
+  // el dominio real de Vega -- no se sustituye por otro inventado. La URL
+  // publica depende ahora unicamente de SITE_URL (ver libs/seo.tsx y
+  // next-sitemap.config.js), que debe configurarse antes de un build de
+  // produccion real.
   crisp: {
     // ID del sitio web de Crisp. SI NO USAS CRISP: simplemente elimina esto => Luego agrega un email de soporte en este archivo de configuracion (resend.supportEmail) de lo contrario el soporte al cliente no funcionara.
     id: "",
@@ -77,12 +80,21 @@ const config = {
     cdn: "https://cdn-id.cloudfront.net/",
   },
   resend: {
-    // REQUERIDO — Campo 'From' del email que se usara al enviar enlaces de inicio de sesion magico
-    fromNoReply: `IA LAB <noreply@resend.ialab.dev>`,
-    // REQUERIDO — Campo 'From' del email que se usara al enviar otros correos, como carritos abandonados, actualizaciones, etc.
-    fromAdmin: `Nico de IA LAB <nico@resend.ialab.dev>`,
-    // Email mostrado al cliente si necesita soporte. Dejalo vacio si no es necesario => si esta vacio, configura Crisp arriba, de lo contrario no podras ofrecer soporte al cliente.
-    supportEmail: "nico.cmw@gmail.com",
+    // Vega todavia no tiene remitente de email propio (sin sociedad
+    // constituida, sin canal de envio operativo) -- se lee de variables de
+    // entorno explicitas en vez de llevar un valor heredado del
+    // boilerplate ("IA LAB"/"Nico") o uno inventado para Vega.
+    // Configura RESEND_FROM_NO_REPLY/RESEND_FROM_ADMIN cuando exista esa
+    // identidad real. libs/resend.ts falla alto y claro si sendEmail() se
+    // llama sin fromAdmin configurado.
+    fromNoReply: process.env.RESEND_FROM_NO_REPLY,
+    fromAdmin: process.env.RESEND_FROM_ADMIN,
+    // Email mostrado al cliente si necesita soporte. Vacio hasta que exista
+    // un canal de soporte/privacidad real de Vega -- ButtonSupport no
+    // renderiza ningun enlace de soporte mientras tanto (ver ese
+    // componente). No poner aqui el email personal heredado del
+    // boilerplate.
+    supportEmail: undefined,
   },
   colors: {
     // REQUERIDO — El tema de DaisyUI a usar (agregado al layout.js principal). Dejalo en blanco para el predeterminado (modo claro y oscuro). Si usas cualquier otro tema que no sea light/dark, necesitas agregarlo en config.tailwind.js en daisyui.themes.

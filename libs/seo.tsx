@@ -1,6 +1,24 @@
 import type { Metadata } from "next";
 import config from "@/config";
 
+// Unica fuente de verdad para la URL publica canonica de Vega. En
+// desarrollo usa localhost (sin requisitos); en produccion exige SITE_URL
+// explicita -- nunca un fallback a shipfa.st, ialab.dev (heredado de la
+// plantilla) ni al dominio de Vercel. Centraliza aqui la lectura para no
+// repetirla en cada uso de metadataBase/OpenGraph/JSON-LD de este archivo.
+function getSiteUrl(): string {
+  if (process.env.NODE_ENV === "development") {
+    return "http://localhost:3000";
+  }
+  const siteUrl = process.env.SITE_URL;
+  if (!siteUrl) {
+    throw new Error(
+      "SITE_URL no esta configurado -- Vega todavia no tiene un dominio publico canonico definido para produccion. Configuralo (p. ej. en las variables de entorno de Vercel) antes de construir metadata/SEO que dependa de la URL publica. No hay ningun fallback (ni shipfa.st, ni ialab.dev, ni el dominio de Vercel)."
+    );
+  }
+  return siteUrl.replace(/\/+$/, "");
+}
+
 // Estas son todas las etiquetas SEO que puedes agregar a tus paginas.
 // Prerellena datos con titulo/descripcion/OG predeterminados, etc. y puedes personalizarlo para cada pagina.
 // Ya esta agregado en el root layout.js asi que no tienes que agregarlo a cada pagina
@@ -25,21 +43,17 @@ export const getSEOTags = ({
     keywords: keywords || [config.appName],
     applicationName: config.appName,
     // establece un prefijo de URL base para otros campos que requieren una URL completa (ej. og:image: 'https://tudominio.com/share.png' => '/share.png')
-    metadataBase: new URL(
-      process.env.NODE_ENV === "development"
-        ? "http://localhost:3000/"
-        : `https://${config.domainName}/`
-    ),
+    metadataBase: new URL(`${getSiteUrl()}/`),
 
     openGraph: {
       title: openGraph?.title || config.appName,
       description: openGraph?.description || config.appDescription,
-      url: openGraph?.url || `https://${config.domainName}/`,
+      url: openGraph?.url || `${getSiteUrl()}/`,
       siteName: openGraph?.title || config.appName,
       // Si agregas una imagen opengraph-image.(jpg|jpeg|png|gif) a la carpeta /app, no necesitas el codigo de abajo
       // images: [
       //   {
-      //     url: `https://${config.domainName}/share.png`,
+      //     url: `${getSiteUrl()}/share.png`,
       //     width: 1200,
       //     height: 660,
       //   },
@@ -83,8 +97,8 @@ export const renderSchemaTags = () => {
           "@type": "SoftwareApplication",
           name: config.appName,
           description: config.appDescription,
-          image: `https://${config.domainName}/icon.png`,
-          url: `https://${config.domainName}/`,
+          image: `${getSiteUrl()}/icon.png`,
+          url: `${getSiteUrl()}/`,
           author: {
             "@type": "Person",
             name: "Vega",

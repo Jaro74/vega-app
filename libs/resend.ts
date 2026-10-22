@@ -20,6 +20,12 @@ export const sendEmail = async ({
   html: string;
   replyTo?: string | string[];
 }) => {
+  if (!config.resend.fromAdmin) {
+    throw new Error(
+      "config.resend.fromAdmin no esta configurado (RESEND_FROM_ADMIN) -- Vega todavia no tiene un remitente de email operativo propio"
+    );
+  }
+
   const { data, error } = await resend.emails.send({
     from: config.resend.fromAdmin,
     to,

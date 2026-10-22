@@ -571,7 +571,7 @@ Antes de utilizar esta política con usuarios reales deben completarse:
 5. procedimiento de retirada de consentimiento;
 6. procedimiento de supresión;
 7. implementación de retención automática;
-8. sustitución del enlace de privacidad de IA LAB por la política propia de Vega;
+8. ~~sustitución del enlace de privacidad de IA LAB por la política propia de Vega~~ — **completado**: el footer y el resto de la app enlazan únicamente a `/privacy-policy` propia de Vega; no queda ningún enlace a una política de IA LAB;
 9. revisión jurídica final.
 
 ---
