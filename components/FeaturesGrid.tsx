@@ -192,17 +192,15 @@ const features = [
           {
             id: 1,
             text: "Podemos tener una funcion para agregar un dominio personalizado?",
-            userImg:
-              "https://pbs.twimg.com/profile_images/1514863683574599681/9k7PqDTA_400x400.jpg",
-            userName: "Marc Lou",
+            userImg: "",
+            userName: "Cliente",
             createdAt: "2024-09-01T00:00:00Z",
           },
           {
             id: 2,
             text: "Definitivamente pagaria por eso 🤩",
-            userImg:
-              "https://pbs.twimg.com/profile_images/1778434561556320256/knBJT1OR_400x400.jpg",
-            userName: "Dan K.",
+            userImg: "",
+            userName: "Cliente 2",
             createdAt: "2024-09-02T00:00:00Z",
             transition:
               "opacity-0 group-hover:opacity-100 duration-500 translate-x-1/4 group-hover:translate-x-0",

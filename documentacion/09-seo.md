@@ -1,5 +1,10 @@
 # 09 - SEO
 
+> **Nota:** esta es documentación técnica heredada de la plantilla genérica, parcialmente
+> desactualizada respecto al código actual (p. ej. `domainName` ya no existe en `config.ts`;
+> la URL pública depende ahora de `SITE_URL`, sin ningún fallback). El comportamiento vigente
+> siempre lo define el código real (`libs/seo.tsx`, `next-sitemap.config.js`), no esta guía.
+
 Configuracion de SEO, meta tags, sitemap y datos estructurados.
 
 ---
@@ -102,7 +107,7 @@ export default function Page() {
   "url": "https://miapp.com/",
   "author": {
     "@type": "Person",
-    "name": "IA LAB"
+    "name": "Tu Nombre"
   },
   "datePublished": "2024-01-01",
   "applicationCategory": "EducationalApplication",
@@ -134,14 +139,20 @@ export default function Page() {
 En `next-sitemap.config.js`:
 
 ```javascript
+// Estado real actual (ver next-sitemap.config.js): SITE_URL es obligatoria,
+// sin ningun fallback -- el build falla explicitamente si falta.
+if (!process.env.SITE_URL) {
+  throw new Error("SITE_URL no esta configurado...");
+}
+
 module.exports = {
-  siteUrl: process.env.SITE_URL || "https://shipfa.st",
+  siteUrl: process.env.SITE_URL,
   generateRobotsTxt: true,
   exclude: ["/twitter-image.*", "/opengraph-image.*", "/icon.*"],
 };
 ```
 
-**Actualizar el `siteUrl`** con tu dominio de produccion.
+**`SITE_URL`** debe estar configurada (en Vercel, o en `.env.local` para pruebas) con el dominio real de produccion antes de ejecutar `npm run build`.
 
 ### Generacion
 
@@ -204,11 +215,11 @@ export const metadata = getSEOTags({
 ## Checklist SEO
 
 - [ ] `appName` y `appDescription` actualizados en `config.ts`
-- [ ] `domainName` correcto en `config.ts`
+- [ ] `SITE_URL` configurada (ya no existe `domainName` en `config.ts`)
 - [ ] Imagen `opengraph-image.png` personalizada
 - [ ] Imagen `twitter-image.png` personalizada
 - [ ] Favicons personalizados
-- [ ] `siteUrl` actualizado en `next-sitemap.config.js`
+- [ ] `SITE_URL` configurada en el entorno antes de `npm run build` (afecta tambien a `next-sitemap.config.js`)
 - [ ] Datos estructurados actualizados en `libs/seo.tsx`
 - [ ] URL canonica en cada pagina
 - [ ] `<h1>` descriptivo en cada pagina

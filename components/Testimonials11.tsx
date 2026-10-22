@@ -80,85 +80,75 @@ const list: {
 }[] = [
   {
     // Muestra @username para redes sociales como Twitter. No enlaza a ningun lugar pero es cool mostrarlo
-    username: "marclou",
-    name: "Marc Lou",
+    username: "usuario1",
+    name: "Cliente",
     text: "Realmente facil de usar. Los tutoriales son muy utiles y explican como funciona todo. Espero lanzar mi proximo proyecto muy rapido!",
     // usa refTypes.other si no quieres mostrar un icono
     type: refTypes.twitter,
     // Enlace al testimonio de la persona. Es mas confiable
-    link: "https://twitter.com/marc_louvion",
     // Una imagen importada estaticamente (usualmente de tu carpeta public—recomendado) o un enlace al avatar de la persona. Muestra una letra de respaldo si no se proporciona
-    img: "https://pbs.twimg.com/profile_images/1514863683574599681/9k7PqDTA_400x400.jpg",
     // Puedes mostrar testimonios en video para construir mas confianza. Solo cambia el tipo arriba a "video" y agrega al menos la fuente del video abajo
     // videoSrc: "/jack.mp4"
   },
   {
-    username: "the_mcnaveen",
-    name: "Naveen",
+    username: "usuario2",
+    name: "Cliente",
     text: "Configurar todo desde cero es un proceso realmente dificil y consume mucho tiempo. Lo que pagas te ahorrara tiempo seguro.",
     type: refTypes.twitter,
-    link: "https://twitter.com/the_mcnaveen",
   },
   {
-    username: "wahab",
-    name: "Wahab Shaikh",
+    username: "usuario3",
+    name: "Cliente",
     text: "Facilmente me ahorra mas de 15 horas configurando cosas triviales. Ahora puedo enfocarme directamente en lanzar funciones en lugar de horas configurando las mismas tecnologias desde cero. Se siente como un superpoder! :D",
     type: refTypes.productHunt,
-    link: "https://www.producthunt.com/products/shipfast-2/reviews?review=667971",
   },
   {
-    name: "Sean",
+    name: "Cliente",
     text: "Acabo de comprar y clonar y *wow!* Realmente me gusta lo que estoy viendo aqui!",
     type: refTypes.other,
   },
   {
-    username: "krishna",
-    name: "Krishna Kant",
+    username: "usuario4",
+    name: "Cliente",
     text: "Finalmente un buen boilerplate para Nextjs, ahora no tengo que llorar comparandolo con el ecosistema de Laravel.",
     type: refTypes.productHunt,
-    link: "https://www.producthunt.com/posts/shipfast-2?comment=2707061",
   },
   {
-    username: "imgyf",
-    name: "Yifan Goh",
+    username: "usuario5",
+    name: "Cliente",
     text: "Es un cambio de juego 🚀 Viene con tutoriales faciles de seguir, y te ahorra mucho tiempo. Que hay que no amar?",
     type: refTypes.twitter,
-    link: "https://twitter.com/imgyf/status/1697549891080532236?s=20",
   },
   {
-    name: "Yazdun",
+    name: "Cliente",
     text: "Hey, obtuve el boilerplate, es fantastico me ahorras 10 horas en cada proyecto",
     type: refTypes.other,
   },
   {
-    name: "Marc Lou",
+    name: "Cliente",
     text: "La herramienta es exactamente lo que no sabia que necesitaba.",
-    videoPoster: "https://d1wkquwg5s1b04.cloudfront.net/demo/marcPoster.jpg",
-    videoSrc: "https://d1wkquwg5s1b04.cloudfront.net/demo/marcVideo.mp4",
     videoHeight: 250,
     videoWidth: 500,
     type: refTypes.video,
   },
   {
-    username: "zawwadx",
-    name: "Zawwad Ul Sami",
+    username: "usuario6",
+    name: "Cliente",
     text: "Es un boilerplate minimalista y ligero increible con codigo bien organizado. Tiene casi todas las caracteristicas principales que querrias en un boilerplate SaaS. Como equipo nuevo el ano pasado nos tomo meses construir un conjunto similar de caracteristicas a un nivel estable.",
     type: refTypes.twitter,
   },
   {
-    username: "dan",
-    name: "Dan Mindru",
+    username: "usuario7",
+    name: "Cliente",
     text: "Probablemente una de las cosas mas poderosas que puedes 'npm install' que he visto",
     type: refTypes.productHunt,
-    link: "https://www.producthunt.com/posts/shipfast-2?comment=2706763",
   },
   // El ultimo testimonio destaca en dispositivos grandes (ocupa 2 columnas + fuente grande) 👇
   {
-    username: "VicPivots",
-    name: "Victor Abeledo",
+    username: "usuario8",
+    name: "Cliente",
     text: "Obtuve tu boilerplate y tener los pagos configurados con Stripe + autenticacion de usuario es una bendicion. Esto me ahorrara como una semana de trabajo por cada nuevo proyecto que inicie. Aprecio que este bien documentado tambien. 100% vale la pena 🚀🚀🚀",
     type: refTypes.twitter,
-    link: "https://twitter.com/VicPivots/status/1697352442986250413?s=20",
   },
 ];
 

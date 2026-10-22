@@ -3,9 +3,8 @@ import config from "@/config";
 
 // Unica fuente de verdad para la URL publica canonica de Vega. En
 // desarrollo usa localhost (sin requisitos); en produccion exige SITE_URL
-// explicita -- nunca un fallback a shipfa.st, ialab.dev (heredado de la
-// plantilla) ni al dominio de Vercel. Centraliza aqui la lectura para no
-// repetirla en cada uso de metadataBase/OpenGraph/JSON-LD de este archivo.
+// explicita, sin ningun valor por defecto. Centraliza aqui la lectura para
+// no repetirla en cada uso de metadataBase/OpenGraph/JSON-LD de este archivo.
 function getSiteUrl(): string {
   if (process.env.NODE_ENV === "development") {
     return "http://localhost:3000";
@@ -13,7 +12,7 @@ function getSiteUrl(): string {
   const siteUrl = process.env.SITE_URL;
   if (!siteUrl) {
     throw new Error(
-      "SITE_URL no esta configurado -- Vega todavia no tiene un dominio publico canonico definido para produccion. Configuralo (p. ej. en las variables de entorno de Vercel) antes de construir metadata/SEO que dependa de la URL publica. No hay ningun fallback (ni shipfa.st, ni ialab.dev, ni el dominio de Vercel)."
+      "SITE_URL no esta configurado -- Vega todavia no tiene un dominio publico canonico definido para produccion. Configuralo (p. ej. en las variables de entorno de Vercel) antes de construir metadata/SEO que dependa de la URL publica. No hay ningun valor por defecto."
     );
   }
   return siteUrl.replace(/\/+$/, "");

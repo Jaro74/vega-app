@@ -12,11 +12,9 @@ const config = {
   appName: "Vega",
   // REQUERIDO: una breve descripcion de tu app para etiquetas SEO (puede sobrescribirse)
   appDescription: "Explora lecturas astrológicas personalizadas con Vega.",
-  // Sin domainName aqui: "ialab.dev" era heredado de la plantilla, no es
-  // el dominio real de Vega -- no se sustituye por otro inventado. La URL
-  // publica depende ahora unicamente de SITE_URL (ver libs/seo.tsx y
-  // next-sitemap.config.js), que debe configurarse antes de un build de
-  // produccion real.
+  // Sin domainName aqui: la URL publica depende unicamente de SITE_URL
+  // (ver libs/seo.tsx y next-sitemap.config.js), que debe configurarse
+  // antes de un build de produccion real. No se fija ningun dominio aqui.
   crisp: {
     // ID del sitio web de Crisp. SI NO USAS CRISP: simplemente elimina esto => Luego agrega un email de soporte en este archivo de configuracion (resend.supportEmail) de lo contrario el soporte al cliente no funcionara.
     id: "",
@@ -82,8 +80,7 @@ const config = {
   resend: {
     // Vega todavia no tiene remitente de email propio (sin sociedad
     // constituida, sin canal de envio operativo) -- se lee de variables de
-    // entorno explicitas en vez de llevar un valor heredado del
-    // boilerplate ("IA LAB"/"Nico") o uno inventado para Vega.
+    // entorno explicitas en vez de un valor fijo en este archivo.
     // Configura RESEND_FROM_NO_REPLY/RESEND_FROM_ADMIN cuando exista esa
     // identidad real. libs/resend.ts falla alto y claro si sendEmail() se
     // llama sin fromAdmin configurado.

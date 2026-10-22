@@ -26,10 +26,9 @@ export type Theme =
 export interface ConfigProps {
   appName: string;
   appDescription: string;
-  // No hay domainName aqui: "ialab.dev" era heredado de la plantilla, no
-  // el dominio de Vega. La URL publica depende de la variable de entorno
-  // SITE_URL (unica fuente, leida en libs/seo.tsx y next-sitemap.config.js),
-  // nunca de un valor fijo en este archivo.
+  // No hay domainName aqui: la URL publica depende exclusivamente de la
+  // variable de entorno SITE_URL (unica fuente, leida en libs/seo.tsx y
+  // next-sitemap.config.js), nunca de un valor fijo en este archivo.
   crisp: {
     id?: string;
     onlyShowOnRoutes?: string[];

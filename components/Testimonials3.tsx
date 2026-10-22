@@ -11,22 +11,21 @@ const list: {
 }[] = [
   {
     // Opcional, usa para redes sociales como Twitter. No enlaza a ningun lugar pero es cool mostrarlo
-    username: "marclou",
+    username: "usuario1",
     // REQUERIDO
-    name: "Marc Lou",
+    name: "Cliente",
     // REQUERIDO
     text: "Realmente facil de usar. Los tutoriales son muy utiles y explican como funciona todo. Espero lanzar mi proximo proyecto muy rapido!",
     // Opcional, una imagen importada estaticamente (usualmente de tu carpeta public—recomendado) o un enlace al avatar de la persona. Muestra una letra de respaldo si no se proporciona
-    img: "https://pbs.twimg.com/profile_images/1514863683574599681/9k7PqDTA_400x400.jpg",
   },
   {
-    username: "the_mcnaveen",
-    name: "Naveen",
+    username: "usuario2",
+    name: "Cliente",
     text: "Configurar todo desde cero es un proceso realmente dificil y consume mucho tiempo. Lo que pagas te ahorrara tiempo seguro.",
   },
   {
-    username: "wahab",
-    name: "Wahab Shaikh",
+    username: "usuario3",
+    name: "Cliente",
     text: "Facilmente me ahorra mas de 15 horas configurando cosas triviales. Ahora puedo enfocarme directamente en lanzar funciones en lugar de horas configurando las mismas tecnologias desde cero. Se siente como un superpoder! :D",
   },
 ];

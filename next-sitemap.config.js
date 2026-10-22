@@ -1,8 +1,6 @@
 // SITE_URL es la unica fuente de verdad del dominio publico (misma
-// variable que usa libs/seo.tsx) -- sin ningun fallback: ni shipfa.st
-// (boilerplate original), ni ialab.dev (heredado de la plantilla IA LAB,
-// nunca fue el dominio real de Vega), ni el dominio de Vercel. Generar un
-// sitemap/robots con un dominio incorrecto es peor que fallar aqui.
+// variable que usa libs/seo.tsx) -- sin ningun valor por defecto. Generar
+// un sitemap/robots con un dominio incorrecto es peor que fallar aqui.
 if (!process.env.SITE_URL) {
   throw new Error(
     "SITE_URL no esta configurado. Define SITE_URL (en Vercel, o en .env.local para generar un sitemap de prueba) con el dominio publico real de Vega antes de ejecutar 'npm run build' -- no hay ningun dominio por defecto seguro."

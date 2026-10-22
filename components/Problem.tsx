@@ -36,9 +36,9 @@ const Step = ({ emoji, text }: { emoji: string; text: string }) => {
 // Tu seccion de Problema explica que le pasa al cliente si su problema no se resuelve.
 // El copy NUNCA debe mencionar tu producto. En cambio, debe profundizar en el resultado emocional de no resolver un problema.
 // Por ejemplo:
-// - Hero: "IA LAB ayuda a desarrolladores a lanzar startups rapido"
-// - Agitacion del Problema: "Los desarrolladores pasan demasiado tiempo agregando funciones, se abruman y abandonan." (no se trata de IA LAB)
-// - Features: "IA LAB tiene autenticacion de usuarios, Stripe, emails todo configurado para ti"
+// - Hero: "Tu Producto ayuda a tus clientes a lograr X rapido"
+// - Agitacion del Problema: "Tus clientes pasan demasiado tiempo en Y, se abruman y abandonan." (no se trata de Tu Producto)
+// - Features: "Tu Producto tiene autenticacion de usuarios, pagos, emails todo configurado para ti"
 const Problem = () => {
   return (
     <section className="bg-neutral text-neutral-content">

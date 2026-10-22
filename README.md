@@ -1,29 +1,53 @@
-# IA LAB Kit
+# Vega
 
-Buenas 👋 soy Nico de IA LAB. Vamos a poner tu producto delante de tus clientes, RÁPIDO ⚡️
+Experimento en fase beta: lecturas astrológicas generadas con IA a partir de datos de nacimiento introducidos por el propio usuario (Segmento A, lectura individual) o de una segunda persona (Segmento B, sinastría/compatibilidad).
 
-> ⭐ Dale a la estrella en el repo para recibir notificaciones cuando haya actualizaciones
+## Stack principal
 
-## Empezar
+- Next.js 15 (App Router) + React 19 + TypeScript
+- Tailwind CSS v4 + DaisyUI v5
+- Supabase (Postgres, vía `supabase-js`)
+- OpenAI (Responses API) para la generación de las interpretaciones
+- Railway (`vega-api`) para el cálculo de la evidencia astrológica
+- PostHog (EU/Frankfurt) para analítica de producto
+- Resend para email transaccional
+- Stripe (andamiaje de pagos; en esta fase no hay cobros reales — ver `app/tos/page.tsx`)
 
-1. Sigue el tutorial [Empieza en 5 minutos](https://ia-lab.gitbook.io/ia-lab-docs/) para clonar el repo y arrancar tu servidor local 💻
+## Desarrollo
 
 ```bash
-git clone <url-del-repo>
-cd plantilla-ia-lab
 npm install
 npm run dev
 ```
 
-2. Monta tu landing page, configura tu identidad y despliega siguiendo la guía paso a paso
+## Comandos
 
-## Links
+```bash
+npm run typecheck   # tsc --noEmit
+npm run test         # vitest run
+npm run e2e          # playwright test
+npm run build        # next build + generación de sitemap (next-sitemap)
+```
 
-- 📚 [Documentación](https://ia-lab.gitbook.io/ia-lab-docs/)
-- 🧑‍💻 [IA LAB](https://www.skool.com/ia-lab-8166)
+## Variables de entorno
 
-## Soporte
+Copia `.env.example` a `.env.local` y rellena los valores (nunca commitees secretos reales). Entre las más relevantes:
 
-Escríbeme a nico@nicocmw.com o directamente por la comunidad
+- `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
+- `STRIPE_PUBLIC_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`
+- `RESEND_API_KEY`, `RESEND_FROM_NO_REPLY`, `RESEND_FROM_ADMIN`
+- `OPENAI_API_KEY`
+- `NEXT_PUBLIC_POSTHOG_KEY`, `NEXT_PUBLIC_POSTHOG_HOST`
+- `VEGA_API_BASE_URL`, `SONDA19_INTERNAL_EVIDENCE_TOKEN`
+- `EXPERIMENT_SESSION_SECRET`
+- **`SITE_URL`** — obligatoria para `npm run build` en producción (metadata/SEO y sitemap). Sin ella, el build falla explícitamente; no hay ningún dominio por defecto.
 
-IMPORTANTE: iremos mejorando la plantilla con el tiempo, esto es la version 1.0, a partir de aquí todo es construir, cualquier detalle a añadir o feedback encantado de recibirlo!
+Ver `.env.example` para el listado completo y comentado.
+
+## Estado del experimento
+
+`EXPERIMENT_ACCEPTING_REAL_TRAFFIC` (`libs/experiment/constants.ts`) permanece en `false` mientras no se complete la puesta en marcha legal/operativa (ver `documentacion/VEGA_Checklist_Puesta_Marcha_Legal_Post_Sociedad_v1.md`). Hasta entonces, el experimento solo acepta tráfico de prueba (`?test=1`).
+
+## Documentación
+
+Ver `documentacion/` para las guías técnicas y el historial de decisiones de arquitectura/privacidad del experimento.
