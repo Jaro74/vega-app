@@ -42,6 +42,9 @@ describe("privacy-service", () => {
       trigger: "career",
       freeText: "texto",
       textProvided: true,
+      relationshipFocus: null,
+      userEmotionalState: null,
+      impactIntensity: null,
     });
     await repository.upsertOwnBirthProfile({
       userId,
@@ -262,6 +265,9 @@ describe("privacy-service", () => {
         trigger: "breakup",
         freeText: null,
         textProvided: false,
+        relationshipFocus: null,
+        userEmotionalState: null,
+        impactIntensity: null,
       });
 
       const result = await deleteAllOwnData(repository, user.id);

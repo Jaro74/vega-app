@@ -1,6 +1,7 @@
 import type { PreviewModelClient } from "@/libs/openai/client";
 import { SYNASTRY_PREVIEW_PROMPT_VERSION } from "@/libs/openai/synastry-preview-prompt";
 import type { SynastryPreviewEvidenceInput } from "@/libs/openai/synastry-preview-prompt";
+import { buildStructuredUserContext } from "@/libs/openai/synastry-user-context";
 import { validateSynastryPreviewForGeneration } from "@/libs/validation/synastry-preview-generation";
 import type { VegaSynastryClient } from "@/libs/vega/synastry-client";
 import type { PreviewGenerationErrorType } from "@/types/preview";
@@ -273,13 +274,22 @@ export async function generateSynastryPreview(
   }
 
   const evidence = derived.features;
-  // Mismo criterio que preview-service.ts: fijado en el momento exacto
-  // en que se decide que userContext se envia a OpenAI.
-  const usedFreeText = Boolean(problemContext?.freeText && problemContext.freeText.trim() !== "");
+  // Segmento B nunca envia free_text a OpenAI (encargo "eliminar
+  // free_text de Segmento B"): usedFreeText queda fijo en false, y
+  // userContext se construye EXCLUSIVAMENTE a partir de los 3 campos
+  // estructurados cerrados, traducidos a frases neutrales centradas en
+  // el usuario por buildStructuredUserContext (nunca problemContext.freeText,
+  // que para B es siempre null desde la migracion de retirada historica).
+  const usedFreeText = false;
+  const userContext = buildStructuredUserContext({
+    relationshipFocus: problemContext?.relationshipFocus ?? null,
+    userEmotionalState: problemContext?.userEmotionalState ?? null,
+    impactIntensity: problemContext?.impactIntensity ?? null,
+  });
   const modelResult = await openaiClient.generatePreview({
     segment: "B",
     trigger,
-    userContext: problemContext?.freeText ?? null,
+    userContext,
     userProfilePrecision: evidence.precision.a,
     partnerPrecision: evidence.precision.b,
     timeKnownA: evidence.timeContext.timeKnownA,

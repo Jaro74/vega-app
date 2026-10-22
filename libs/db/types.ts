@@ -48,12 +48,22 @@ export interface FlowAttemptRecord {
 
 // Sprint 2 - datos de nacimiento propios y de contexto/problema. Fuente:
 // VEGA_Plan_Tecnico_Implementacion_Experimento.md, seccion 8.
+// relationshipFocus/userEmotionalState/impactIntensity: Segmento B
+// unicamente (sustituyen al texto libre, encargo "eliminar free_text de
+// Segmento B") -- siempre null en filas de Segmento A. Tipados como
+// string/number sueltos (no los enums estrechos de types/experiment.ts)
+// por la misma convencion ya usada aqui para `trigger`: la capa de
+// persistencia no valida pertenencia a un catalogo, eso es
+// responsabilidad de la capa de validacion/negocio.
 export interface ProblemContextRecord {
   id: string;
   flowAttemptId: string;
   trigger: string;
   freeText: string | null;
   textProvided: boolean;
+  relationshipFocus: string | null;
+  userEmotionalState: string | null;
+  impactIntensity: number | null;
   createdAt: string;
 }
 
@@ -76,7 +86,17 @@ export interface SubmitProblemContextWithFreeTextResult {
   outcome: SubmitProblemContextWithFreeTextOutcome;
 }
 
-export type WithdrawFreeTextConsentOutcome = "withdrawn" | "no_consent" | "already_withdrawn" | "already_expired";
+// already_ended: close_reason='purpose_ended' -- el ciclo se cerro
+// porque Segmento B deja de recoger texto libre (retirada de la
+// finalidad por el responsable), no por accion del usuario ni por
+// expiracion temporal. Ver
+// supabase/migrations/20260113000000_segment_b_structured_context.sql.
+export type WithdrawFreeTextConsentOutcome =
+  | "withdrawn"
+  | "no_consent"
+  | "already_withdrawn"
+  | "already_expired"
+  | "already_ended";
 
 export interface WithdrawFreeTextConsentResult {
   outcome: WithdrawFreeTextConsentOutcome;
@@ -194,11 +214,22 @@ export interface UpdateFlowAttemptProgressInput {
 // Idempotente por diseno: flowAttemptId es unique en problem_context, asi
 // que reenviar el mismo intento (reintento normal, doble submit) nunca
 // duplica la fila (VEGA Sprint 2, "escrituras idempotentes").
+//
+// relationshipFocus/userEmotionalState/impactIntensity son obligatorios
+// (nunca `?:` opcional), igual que freeText -- deliberado: obliga a quien
+// llama a decidir explicitamente `null` en vez de dejarlos `undefined`
+// por descuido, que es lo que hace segura la semantica de sobreescritura
+// total (nunca fusion parcial): cada llamada fija los 3 campos
+// exactamente a lo que venga, incluyendo limpiarlos a null en una
+// reedicion que ya no los incluya.
 export interface UpsertProblemContextInput {
   flowAttemptId: string;
   trigger: string;
   freeText: string | null;
   textProvided: boolean;
+  relationshipFocus: string | null;
+  userEmotionalState: string | null;
+  impactIntensity: number | null;
 }
 
 // Idempotente por diseno: userId es unique en user_birth_profile.

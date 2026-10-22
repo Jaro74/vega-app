@@ -205,12 +205,25 @@ describe("SupabaseExperimentRepository", () => {
   });
 
   it("upsertProblemContext usa onConflict:flow_attempt_id y mapea la fila resultante", async () => {
-    const row = {
+    const row: {
+      id: string;
+      flow_attempt_id: string;
+      trigger: string;
+      free_text: string | null;
+      text_provided: boolean;
+      relationship_focus: string | null;
+      user_emotional_state: string | null;
+      impact_intensity: number | null;
+      created_at: string;
+    } = {
       id: "problem-1",
       flow_attempt_id: "attempt-1",
       trigger: "career",
       free_text: "texto",
       text_provided: true,
+      relationship_focus: null,
+      user_emotional_state: null,
+      impact_intensity: null,
       created_at: "2026-01-01T00:00:00.000Z",
     };
     const chain = createFakeChain({});
@@ -222,6 +235,9 @@ describe("SupabaseExperimentRepository", () => {
       trigger: "career",
       freeText: "texto",
       textProvided: true,
+      relationshipFocus: null,
+      userEmotionalState: null,
+      impactIntensity: null,
     });
 
     expect(chain.upsert).toHaveBeenCalledWith(
@@ -230,6 +246,55 @@ describe("SupabaseExperimentRepository", () => {
     );
     expect(result.id).toBe("problem-1");
     expect(result.freeText).toBe("texto");
+  });
+
+  it("upsertProblemContext (Segmento B) envia relationship_focus/user_emotional_state/impact_intensity en el upsert", async () => {
+    const row: {
+      id: string;
+      flow_attempt_id: string;
+      trigger: string;
+      free_text: string | null;
+      text_provided: boolean;
+      relationship_focus: string | null;
+      user_emotional_state: string | null;
+      impact_intensity: number | null;
+      created_at: string;
+    } = {
+      id: "problem-2",
+      flow_attempt_id: "attempt-2",
+      trigger: "distance",
+      free_text: null,
+      text_provided: false,
+      relationship_focus: "trust_security",
+      user_emotional_state: "hopeful",
+      impact_intensity: 4,
+      created_at: "2026-01-01T00:00:00.000Z",
+    };
+    const chain = createFakeChain({});
+    chain.single = vi.fn(() => Promise.resolve({ data: row, error: null }));
+
+    const repository = new SupabaseExperimentRepository(chain as unknown as SupabaseClient);
+    const result = await repository.upsertProblemContext({
+      flowAttemptId: "attempt-2",
+      trigger: "distance",
+      freeText: null,
+      textProvided: false,
+      relationshipFocus: "trust_security",
+      userEmotionalState: "hopeful",
+      impactIntensity: 4,
+    });
+
+    expect(chain.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        relationship_focus: "trust_security",
+        user_emotional_state: "hopeful",
+        impact_intensity: 4,
+      }),
+      { onConflict: "flow_attempt_id" }
+    );
+    expect(result.relationshipFocus).toBe("trust_security");
+    expect(result.userEmotionalState).toBe("hopeful");
+    expect(result.impactIntensity).toBe(4);
   });
 
   it("upsertOwnBirthProfile usa onConflict:user_id y mapea la fila resultante", async () => {

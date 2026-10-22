@@ -148,12 +148,18 @@ describe("InMemoryExperimentRepository - Sprint 2", () => {
       trigger: "career",
       freeText: null,
       textProvided: false,
+      relationshipFocus: null,
+      userEmotionalState: null,
+      impactIntensity: null,
     });
     const updated = await repository.upsertProblemContext({
       flowAttemptId: "attempt-1",
       trigger: "career",
       freeText: "texto anadido despues",
       textProvided: true,
+      relationshipFocus: null,
+      userEmotionalState: null,
+      impactIntensity: null,
     });
 
     const stored = await repository.getProblemContextByFlowAttempt("attempt-1");
@@ -655,6 +661,41 @@ describe("InMemoryExperimentRepository - ciclos de consentimiento del free_text"
     expect(result.outcome).toBe("already_expired");
   });
 
+  // purpose_ended: cierre historico de Segmento B (migracion de retirada
+  // de free_text, nunca disparado por codigo de aplicacion -- solo el
+  // helper de test simula el estado que deja esa migracion).
+  it("granted -> purpose_ended (simulado): withdrawFreeTextConsent devuelve already_ended, sin excepcion", async () => {
+    await repository.submitProblemContextWithFreeText({
+      flowAttemptId: "attempt-ft-purpose-ended",
+      trigger: "distance",
+      freeText: "un texto historico de segmento B",
+      consentVersion: "v2",
+    });
+
+    await repository.simulatePurposeEndedForTests("attempt-ft-purpose-ended");
+
+    const result = await repository.withdrawFreeTextConsent("attempt-ft-purpose-ended");
+    expect(result.outcome).toBe("already_ended");
+    expect(result.previewsDeleted).toBe(0);
+  });
+
+  it("simulatePurposeEndedForTests es idempotente: no sobrescribe un cierre ya existente (withdrawn)", async () => {
+    await repository.submitProblemContextWithFreeText({
+      flowAttemptId: "attempt-ft-already-withdrawn",
+      trigger: "distance",
+      freeText: "un texto",
+      consentVersion: "v2",
+    });
+    await repository.withdrawFreeTextConsent("attempt-ft-already-withdrawn");
+
+    // Si purpose_ended se forzara sin comprobar el estado actual,
+    // "withdrawn" se perderia -- no debe ocurrir.
+    await repository.simulatePurposeEndedForTests("attempt-ft-already-withdrawn");
+
+    const result = await repository.withdrawFreeTextConsent("attempt-ft-already-withdrawn");
+    expect(result.outcome).toBe("already_withdrawn");
+  });
+
   it("doble retirada: la segunda devuelve already_withdrawn, sin duplicar el cierre", async () => {
     await repository.submitProblemContextWithFreeText({
       flowAttemptId: "attempt-ft-3",
@@ -714,6 +755,34 @@ describe("InMemoryExperimentRepository - ciclos de consentimiento del free_text"
     expect(result).toEqual({ flowAttemptsAffected: 1, waitlistEntryDeleted: false });
 
     expect(await repository.getProblemContextByFlowAttempt(attempt.id)).toBeNull();
+    expect((await repository.withdrawFreeTextConsent(attempt.id)).outcome).toBe("no_consent");
+  });
+
+  it("performDeleteAllOwnData sobre un ciclo ya cerrado por purpose_ended: lo bloquea sin lanzar y sin tratarlo como erasure_requested", async () => {
+    const user = await repository.findOrCreateExperimentUser({
+      anonymousUserId: "55555555-5555-5555-5555-555555555555",
+      experimentId: "vega_beachhead_v1",
+      acquisition,
+      isTest: true,
+    });
+    const attempt = await repository.createFlowAttempt({ userId: user.id, segment: "B" });
+
+    await repository.submitProblemContextWithFreeText({
+      flowAttemptId: attempt.id,
+      trigger: "distance",
+      freeText: "texto historico de B",
+      consentVersion: "v2",
+    });
+    await repository.simulatePurposeEndedForTests(attempt.id);
+
+    // No debe lanzar (el bug auditado era exactamente que un else/throw
+    // no reconocia purpose_ended) y debe bloquear el nucleo purgable
+    // igual que para cualquier otro ciclo ya cerrado.
+    const result = await repository.performDeleteAllOwnData(user.id);
+    expect(result).toEqual({ flowAttemptsAffected: 1, waitlistEntryDeleted: false });
+    expect(await repository.getProblemContextByFlowAttempt(attempt.id)).toBeNull();
+
+    // Bloqueado (no "activo"): ya no aparece como ciclo vigente.
     expect((await repository.withdrawFreeTextConsent(attempt.id)).outcome).toBe("no_consent");
   });
 

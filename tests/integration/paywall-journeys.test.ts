@@ -290,10 +290,12 @@ describe("Sprint 4 — journeys del recorrido comercial (paywall/intent/waitlist
 
   it("journey completo B: sinastria valida -> preview/complete -> priced-intent -> waitlist", async () => {
     const { flowAttemptId, cookies } = await startAttempt("B");
+    // Segmento B ya no tiene freeText (encargo "eliminar free_text de
+    // Segmento B"): usa el contexto estructurado en su lugar.
     await postJson(
       problemPOST,
       "/api/problem",
-      { flowAttemptId, trigger: "distance", freeText: "Contexto B", freeTextConsentGiven: true, freeTextConsentVersion: "v1" },
+      { flowAttemptId, trigger: "distance", relationshipFocus: "trust_security", userEmotionalState: "hopeful", impactIntensity: 4 },
       cookies
     );
     await postJson(

@@ -249,6 +249,155 @@ describe("onboarding-service", () => {
     });
   });
 
+  // Segmento B: contexto estructurado cerrado, nunca texto libre
+  // (encargo "eliminar free_text de Segmento B"). El segmento se deriva
+  // siempre de `attempt` (BD), nunca de un valor del body.
+  describe("submitProblem — segmento B (contexto estructurado)", () => {
+    it("persiste relationshipFocus/userEmotionalState/impactIntensity y avanza a own_profile_intro", async () => {
+      const { attempt } = await createAttempt("B");
+
+      const result = await submitProblem(repository, {
+        flowAttemptId: attempt.id,
+        trigger: "distance",
+        relationshipFocus: "trust_security",
+        userEmotionalState: "hopeful",
+        impactIntensity: 4,
+      });
+
+      expect(result.ok).toBe(true);
+      if (result.ok) expect(result.nextStep).toBe("own_profile_intro");
+
+      const saved = await repository.getProblemContextByFlowAttempt(attempt.id);
+      expect(saved?.trigger).toBe("distance");
+      expect(saved?.relationshipFocus).toBe("trust_security");
+      expect(saved?.userEmotionalState).toBe("hopeful");
+      expect(saved?.impactIntensity).toBe(4);
+      expect(saved?.freeText).toBeNull();
+      expect(saved?.textProvided).toBe(false);
+    });
+
+    it("los 3 campos estructurados son opcionales: sin ninguno, igualmente avanza y persiste null", async () => {
+      const { attempt } = await createAttempt("B");
+
+      const result = await submitProblem(repository, { flowAttemptId: attempt.id, trigger: "distance" });
+
+      expect(result.ok).toBe(true);
+      const saved = await repository.getProblemContextByFlowAttempt(attempt.id);
+      expect(saved?.relationshipFocus).toBeNull();
+      expect(saved?.userEmotionalState).toBeNull();
+      expect(saved?.impactIntensity).toBeNull();
+    });
+
+    it("rechaza freeText para un intento de segmento B, sin persistir nada", async () => {
+      const { attempt } = await createAttempt("B");
+
+      const result = await submitProblem(repository, {
+        flowAttemptId: attempt.id,
+        trigger: "distance",
+        freeText: "Un dato sensible sobre mi pareja",
+      });
+
+      expect(result.ok).toBe(false);
+      if (result.ok === false) expect(result.status).toBe(400);
+
+      const saved = await repository.getProblemContextByFlowAttempt(attempt.id);
+      expect(saved).toBeNull();
+    });
+
+    it("rechaza freeTextConsentGiven para B aunque no venga freeText", async () => {
+      const { attempt } = await createAttempt("B");
+
+      const result = await submitProblem(repository, {
+        flowAttemptId: attempt.id,
+        trigger: "distance",
+        freeTextConsentGiven: true,
+      });
+
+      expect(result.ok).toBe(false);
+      if (result.ok === false) expect(result.status).toBe(400);
+    });
+
+    it("rechaza freeTextConsentVersion para B aunque no venga freeText", async () => {
+      const { attempt } = await createAttempt("B");
+
+      const result = await submitProblem(repository, {
+        flowAttemptId: attempt.id,
+        trigger: "distance",
+        freeTextConsentVersion: "v2",
+      });
+
+      expect(result.ok).toBe(false);
+      if (result.ok === false) expect(result.status).toBe(400);
+    });
+
+    it("peticion manipulada (cookies legitimas de B + freeText) no persiste texto -- el guard de negocio rechaza antes de llegar al repositorio", async () => {
+      const { attempt } = await createAttempt("B");
+
+      await submitProblem(repository, {
+        flowAttemptId: attempt.id,
+        trigger: "distance",
+        relationshipFocus: "communication",
+      });
+
+      const manipulated = await submitProblem(repository, {
+        flowAttemptId: attempt.id,
+        trigger: "distance",
+        freeText: "Intento de reenviar texto libre para B",
+        freeTextConsentGiven: true,
+        freeTextConsentVersion: "v2",
+      });
+
+      expect(manipulated.ok).toBe(false);
+      if (manipulated.ok === false) expect(manipulated.status).toBe(400);
+
+      const saved = await repository.getProblemContextByFlowAttempt(attempt.id);
+      expect(saved?.freeText).toBeNull();
+      // El primer submit legitimo no se pierde por el intento rechazado.
+      expect(saved?.relationshipFocus).toBe("communication");
+    });
+
+    it("rechaza relationshipFocus/userEmotionalState/impactIntensity para un intento de segmento A", async () => {
+      const { attempt } = await createAttempt("A");
+
+      const result = await submitProblem(repository, {
+        flowAttemptId: attempt.id,
+        trigger: "career",
+        relationshipFocus: "communication",
+      });
+
+      expect(result.ok).toBe(false);
+      if (result.ok === false) expect(result.status).toBe(400);
+
+      const saved = await repository.getProblemContextByFlowAttempt(attempt.id);
+      expect(saved).toBeNull();
+    });
+
+    it("sobrescritura total en edicion: un segundo submit que omite campos los limpia a null, no los conserva", async () => {
+      const { attempt } = await createAttempt("B");
+
+      await submitProblem(repository, {
+        flowAttemptId: attempt.id,
+        trigger: "distance",
+        relationshipFocus: "trust_security",
+        userEmotionalState: "hopeful",
+        impactIntensity: 4,
+      });
+
+      const result = await submitProblem(repository, {
+        flowAttemptId: attempt.id,
+        trigger: "distance",
+        relationshipFocus: "communication",
+        // userEmotionalState e impactIntensity se omiten deliberadamente.
+      });
+
+      expect(result.ok).toBe(true);
+      const saved = await repository.getProblemContextByFlowAttempt(attempt.id);
+      expect(saved?.relationshipFocus).toBe("communication");
+      expect(saved?.userEmotionalState).toBeNull();
+      expect(saved?.impactIntensity).toBeNull();
+    });
+  });
+
   describe("submitOwnProfile", () => {
     it("segmento A: precision full con hora conocida y termina el onboarding (nextStep preview)", async () => {
       const { attempt, user } = await createAttempt("A");

@@ -41,9 +41,14 @@ class FakeSynastryClient implements VegaSynastryClient {
 
 class FakeOpenAIClient implements PreviewModelClient {
   callCount = 0;
+  // Captura el ultimo input recibido -- permite a los tests de B afirmar
+  // exactamente que userContext llego a "OpenAI" (nunca problemContext.freeText,
+  // siempre buildStructuredUserContext sobre los 3 campos estructurados).
+  lastInput: Parameters<PreviewModelClient["generatePreview"]>[0] | null = null;
   constructor(private readonly result: PreviewModelResult) {}
-  async generatePreview(): Promise<PreviewModelResult> {
+  async generatePreview(input: Parameters<PreviewModelClient["generatePreview"]>[0]): Promise<PreviewModelResult> {
     this.callCount += 1;
+    this.lastInput = input;
     return this.result;
   }
 }
@@ -143,11 +148,18 @@ describe("generatePreviewForFlowAttempt (segmento B, sinastria)", () => {
       isTest: false,
     });
     const attempt = await repository.createFlowAttempt({ userId: user.id, segment: "B" });
+    // Segmento B ya no tiene freeText (encargo "eliminar free_text de
+    // Segmento B"): el fixture usa los 3 campos estructurados en su
+    // lugar, con valores representativos reutilizados por el test de
+    // "userContext se construye desde los enums" de abajo.
     await repository.upsertProblemContext({
       flowAttemptId: attempt.id,
       trigger: "distance",
-      freeText: "Un contexto de prueba",
-      textProvided: true,
+      freeText: null,
+      textProvided: false,
+      relationshipFocus: "trust_security",
+      userEmotionalState: "hopeful",
+      impactIntensity: 4,
     });
     await repository.upsertOwnBirthProfile({
       userId: user.id,
@@ -187,6 +199,51 @@ describe("generatePreviewForFlowAttempt (segmento B, sinastria)", () => {
     expect(persisted?.synastryFactsVersion).toBe("syn_facts_v1");
     expect(persisted?.timeKnownB).toBe(true);
     expect(persisted?.evidenceIdsUsed).toEqual(["ev_ab_001", "ev_ab_002"]);
+  });
+
+  it("B: userContext llega a OpenAI construido solo desde los enums estructurados, nunca desde freeText", async () => {
+    const { attempt } = await createSegmentBAttempt(VALENCIA_PLACE, true);
+    const synastry = new FakeSynastryClient(okSynastryResponse());
+    const openai = new FakeOpenAIClient({ ok: true, output: validPreviewOutput(), latencyMs: 10, modelId: "test-model" });
+
+    await generatePreviewForFlowAttempt(repository, new UnusedNatalVegaClient(), openai, synastry, attempt.id);
+
+    expect(openai.lastInput).not.toBeNull();
+    const userContext = (openai.lastInput as { userContext: string | null }).userContext;
+    expect(userContext).toBe(
+      "El usuario quiere entender mejor la confianza y la seguridad que siente en esta relación. " +
+        "El usuario siente esperanza respecto a esta relación. " +
+        "El usuario describe el impacto de esta situación en su vida ahora mismo como 4/5."
+    );
+    // Nunca el valor crudo del enum en ingles, nunca la palabra freeText.
+    expect(userContext).not.toContain("trust_security");
+    expect(userContext).not.toContain("hopeful");
+
+    const problemContext = await repository.getProblemContextByFlowAttempt(attempt.id);
+    expect(problemContext?.freeText).toBeNull();
+
+    const persisted = await repository.getValidPreviewByFlowAttempt(attempt.id);
+    expect(persisted?.usedFreeText).toBe(false);
+  });
+
+  it("B: sin ningun campo estructurado relleno, userContext es null (nunca una cadena vacia ni un texto inventado)", async () => {
+    const { attempt } = await createSegmentBAttempt(VALENCIA_PLACE, true);
+    await repository.upsertProblemContext({
+      flowAttemptId: attempt.id,
+      trigger: "distance",
+      freeText: null,
+      textProvided: false,
+      relationshipFocus: null,
+      userEmotionalState: null,
+      impactIntensity: null,
+    });
+    const synastry = new FakeSynastryClient(okSynastryResponse());
+    const openai = new FakeOpenAIClient({ ok: true, output: validPreviewOutput(), latencyMs: 10, modelId: "test-model" });
+
+    await generatePreviewForFlowAttempt(repository, new UnusedNatalVegaClient(), openai, synastry, attempt.id);
+
+    const userContext = (openai.lastInput as { userContext: string | null }).userContext;
+    expect(userContext).toBeNull();
   });
 
   it("B partial: Vega ok con partial/full -> preview valida", async () => {

@@ -69,10 +69,12 @@ async function startAttempt(segment: "A" | "B") {
 }
 
 async function completeSegmentBOwnProfile(cookies: Record<string, string>, flowAttemptId: string) {
+  // Segmento B ya no tiene freeText (encargo "eliminar free_text de
+  // Segmento B"): el fixture usa el contexto estructurado en su lugar.
   await postJson(
     problemPOST,
     "/api/problem",
-    { flowAttemptId, trigger: "distance", freeText: "Un contexto de prueba", freeTextConsentGiven: true, freeTextConsentVersion: "v1" },
+    { flowAttemptId, trigger: "distance", relationshipFocus: "trust_security", userEmotionalState: "hopeful", impactIntensity: 4 },
     cookies
   );
   await postJson(
@@ -109,6 +111,33 @@ describe("Sprint 3B — journeys de preview (segmento B, sinastria)", () => {
 
     const repository = getExperimentRepository();
     expect(await repository.getPartnerInputByFlowAttempt(flowAttemptId)).toBeNull();
+  });
+
+  // Peticion manipulada contra la ruta HTTP real (no solo a nivel de
+  // servicio): cookies legitimas de una sesion B real, body con freeText.
+  // Encargo "eliminar free_text de Segmento B", escenario curl del
+  // punto 6.
+  it("POST /api/problem con segment=B + freeText manipulado -> 400, sin persistir texto", async () => {
+    const { flowAttemptId, cookies } = await startAttempt("B");
+
+    const response = await postJson(
+      problemPOST,
+      "/api/problem",
+      {
+        flowAttemptId,
+        trigger: "distance",
+        freeText: "Un dato sensible sobre mi pareja",
+        freeTextConsentGiven: true,
+        freeTextConsentVersion: "v2",
+      },
+      cookies
+    );
+
+    expect(response.status).toBe(400);
+
+    const repository = getExperimentRepository();
+    const saved = await repository.getProblemContextByFlowAttempt(flowAttemptId);
+    expect(saved?.freeText ?? null).toBeNull();
   });
 
   it("B partial: partner sin hora -> preview_v1 valida", async () => {

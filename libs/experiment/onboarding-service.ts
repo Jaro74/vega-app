@@ -48,23 +48,19 @@ export interface SubmitProblemResult {
   nextStep: FlowStep;
 }
 
-// Un unico endpoint persiste trigger + texto opcional a la vez
-// (types/api.ts ProblemRequest, contrato de Sprint 0, extendido de
-// forma aditiva en la consulta de consentimiento del free_text): las
-// pantallas A1/A2 (o B1/B2) son solo navegacion de UI, el submit real
-// ocurre al terminar la pantalla de texto. Idempotente: reenviar el
-// mismo flow_attempt_id actualiza la misma fila (unique en
-// problem_context), nunca duplica.
+// Un unico endpoint persiste trigger + contexto opcional a la vez
+// (types/api.ts ProblemRequest, contrato de Sprint 0, extendido de forma
+// aditiva primero por la consulta de consentimiento del free_text y
+// despues por el contexto estructurado de Segmento B): las pantallas
+// A1/A2 (o B1/B2) son solo navegacion de UI, el submit real ocurre al
+// terminar la segunda pantalla. Idempotente: reenviar el mismo
+// flow_attempt_id actualiza la misma fila (unique en problem_context),
+// nunca duplica.
 //
-// Camino sin texto (freeText vacio/ausente): upsertProblemContext
-// simple, sin consentimiento -- sin cambios respecto al contrato
-// original. Camino con texto: exige freeTextConsentGiven +
-// freeTextConsentVersion, aplica el filtro compartido de identificadores
-// directos fuertes ANTES de persistir, y delega la escritura
-// atomica (problem_context + evento de consentimiento) en
-// submitProblemContextWithFreeText (ver
-// supabase/migrations/20260110000000_free_text_consent.sql). Nunca
-// llama a ambos caminos para el mismo submit.
+// El segmento se deriva SIEMPRE de `attempt` (ya leido de la BD), nunca
+// de un valor del body -- es lo que hace posible rechazar de forma
+// fiable freeText* para B y los campos estructurados para A, sin confiar
+// en lo que el cliente afirme ser.
 export async function submitProblem(
   repository: ExperimentRepository,
   input: ProblemRequestInput
@@ -76,6 +72,77 @@ export async function submitProblem(
     return badRequest(`trigger '${input.trigger}' no valido para el segmento ${attempt.segment}`);
   }
 
+  if (attempt.segment === "B") {
+    return submitStructuredProblemContextForSegmentB(repository, attempt, input);
+  }
+
+  return submitFreeTextProblemContextForSegmentA(repository, attempt, input);
+}
+
+// Segmento B (encargo "eliminar free_text de Segmento B"): nunca texto
+// libre, nunca consentimiento especifico -- rechaza los 3 campos de A
+// aunque lleguen solos, sin freeText, porque freeTextConsentGiven/
+// freeTextConsentVersion sin texto no tienen ningun uso legitimo para B.
+// El camino de escritura es el upsert simple (sin RPC transaccional de
+// consentimiento): no hay ninguna categoria especial que gestionar aqui
+// por diseno, a diferencia del free_text de A.
+async function submitStructuredProblemContextForSegmentB(
+  repository: ExperimentRepository,
+  attempt: FlowAttemptRecord,
+  input: ProblemRequestInput
+): Promise<SubmitProblemResult | ServiceError> {
+  if (
+    input.freeText !== undefined ||
+    input.freeTextConsentGiven !== undefined ||
+    input.freeTextConsentVersion !== undefined
+  ) {
+    return badRequest("el segmento B no admite texto libre");
+  }
+
+  // Sobreescritura total (nunca fusion parcial): un campo ausente en
+  // esta llamada se persiste como null, incluso si una edicion anterior
+  // lo habia rellenado.
+  await repository.upsertProblemContext({
+    flowAttemptId: attempt.id,
+    trigger: input.trigger,
+    freeText: null,
+    textProvided: false,
+    relationshipFocus: input.relationshipFocus ?? null,
+    userEmotionalState: input.userEmotionalState ?? null,
+    impactIntensity: input.impactIntensity ?? null,
+  });
+
+  await repository.updateFlowAttemptProgress({
+    flowAttemptId: attempt.id,
+    trigger: input.trigger,
+    currentStep: "problem_text",
+  });
+
+  return { ok: true, nextStep: "own_profile_intro" };
+}
+
+// Segmento A: arquitectura v2 del free_text sin cambios. Camino sin
+// texto (freeText vacio/ausente): upsertProblemContext simple, sin
+// consentimiento. Camino con texto: exige freeTextConsentGiven +
+// freeTextConsentVersion, aplica el filtro compartido de identificadores
+// directos fuertes ANTES de persistir, y delega la escritura atomica
+// (problem_context + evento de consentimiento) en
+// submitProblemContextWithFreeText (ver
+// supabase/migrations/20260110000000_free_text_consent.sql). Nunca llama
+// a ambos caminos para el mismo submit.
+async function submitFreeTextProblemContextForSegmentA(
+  repository: ExperimentRepository,
+  attempt: FlowAttemptRecord,
+  input: ProblemRequestInput
+): Promise<SubmitProblemResult | ServiceError> {
+  if (
+    input.relationshipFocus !== undefined ||
+    input.userEmotionalState !== undefined ||
+    input.impactIntensity !== undefined
+  ) {
+    return badRequest("estos campos solo aplican al segmento B");
+  }
+
   const trimmedFreeText = input.freeText?.trim() ?? "";
 
   if (trimmedFreeText.length === 0) {
@@ -84,6 +151,9 @@ export async function submitProblem(
       trigger: input.trigger,
       freeText: null,
       textProvided: false,
+      relationshipFocus: null,
+      userEmotionalState: null,
+      impactIntensity: null,
     });
   } else {
     if (!input.freeTextConsentGiven || !input.freeTextConsentVersion) {

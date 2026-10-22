@@ -104,6 +104,9 @@ interface ProblemContextRow {
   trigger: string;
   free_text: string | null;
   text_provided: boolean;
+  relationship_focus: string | null;
+  user_emotional_state: string | null;
+  impact_intensity: number | null;
   created_at: string;
 }
 
@@ -114,6 +117,9 @@ function toProblemContextRecord(row: ProblemContextRow): ProblemContextRecord {
     trigger: row.trigger,
     freeText: row.free_text,
     textProvided: row.text_provided,
+    relationshipFocus: row.relationship_focus,
+    userEmotionalState: row.user_emotional_state,
+    impactIntensity: row.impact_intensity,
     createdAt: row.created_at,
   };
 }
@@ -469,6 +475,9 @@ export class SupabaseExperimentRepository implements ExperimentRepository {
           trigger: input.trigger,
           free_text: input.freeText,
           text_provided: input.textProvided,
+          relationship_focus: input.relationshipFocus,
+          user_emotional_state: input.userEmotionalState,
+          impact_intensity: input.impactIntensity,
         },
         { onConflict: "flow_attempt_id" }
       )

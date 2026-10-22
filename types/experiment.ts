@@ -31,6 +31,48 @@ export type TriggerB = (typeof TRIGGERS_B)[number];
 
 export type Trigger = TriggerA | TriggerB;
 
+// Segmento B unicamente (encargo "eliminar free_text de Segmento B"):
+// sustituye el texto libre por contexto estructurado cerrado. Responde a
+// una pregunta distinta de trigger ("que quieres comprender mejor de esta
+// relacion", no "que situacion te trae") -- por eso no duplica ningun
+// valor de TRIGGERS_B (se elimino deliberadamente "conflict", que ya
+// existe ahi, y "closeness_distance" se renombro a "emotional_closeness"
+// para no solaparse con TRIGGERS_B.distance). Nunca incluye "other": una
+// opcion abierta reintroduciria exactamente el riesgo de texto libre que
+// este catalogo sustituye.
+export const RELATIONSHIP_FOCUS_OPTIONS = [
+  "communication",
+  "emotional_closeness",
+  "trust_security",
+  "current_change",
+  "repeating_pattern",
+  "navigating_relationship",
+] as const;
+
+export type RelationshipFocus = (typeof RELATIONSHIP_FOCUS_OPTIONS)[number];
+
+// Segmento B unicamente. Autodescripcion del usuario en primera persona
+// sobre como vive la relacion -- nunca una categoria sobre la Persona B.
+// Ninguno es un termino clinico/diagnostico: mismo registro coloquial que
+// TRIGGERS_A.blocked ("Me siento bloqueado/a"), ya aprobado.
+export const USER_EMOTIONAL_STATE_OPTIONS = [
+  "confused",
+  "insecure",
+  "distant",
+  "frustrated",
+  "blocked",
+  "hopeful",
+  "calm",
+  "curious",
+] as const;
+
+export type UserEmotionalState = (typeof USER_EMOTIONAL_STATE_OPTIONS)[number];
+
+// Segmento B unicamente, opcional. Pregunta exclusivamente sobre el
+// usuario ("cuanto te esta afectando esta situacion ahora mismo"), nunca
+// sobre la Persona B.
+export type ImpactIntensity = 1 | 2 | 3 | 4 | 5;
+
 export type OwnProfilePrecision = "full" | "limited";
 
 export type PartnerPrecision = "full" | "partial" | "minimal";

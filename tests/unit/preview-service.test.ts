@@ -133,6 +133,9 @@ describe("generatePreviewForFlowAttempt", () => {
       trigger: "career",
       freeText: "Un contexto de prueba",
       textProvided: true,
+      relationshipFocus: null,
+      userEmotionalState: null,
+      impactIntensity: null,
     });
     await repository.upsertOwnBirthProfile({
       userId: user.id,
@@ -281,6 +284,9 @@ describe("generatePreviewForFlowAttempt", () => {
       trigger: "distance",
       freeText: null,
       textProvided: false,
+      relationshipFocus: null,
+      userEmotionalState: null,
+      impactIntensity: null,
     });
 
     const vega = new FakeVegaClient({ ok: true, data: validVegaResponse() });

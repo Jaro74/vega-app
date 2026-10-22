@@ -6,10 +6,13 @@
 
 import type {
   FlowStep,
+  ImpactIntensity,
   OwnProfilePrecision,
   PartnerPrecision,
+  RelationshipFocus,
   Segment,
   Trigger,
+  UserEmotionalState,
 } from "./experiment";
 import type { PreviewGenerationErrorType, PreviewV1Output } from "./preview";
 import type { SynastryParticipant } from "./synastry";
@@ -71,13 +74,24 @@ export interface SegmentResponse {
 // freeText tiene contenido (consentimiento especifico art. 6.1.a /
 // 9.2.a cuando proceda, ver libs/experiment/direct-identifier-filter.ts
 // y supabase/migrations/20260110000000_free_text_consent.sql);
-// irrelevantes si freeText esta vacio o ausente.
+// irrelevantes si freeText esta vacio o ausente. Exclusivo de Segmento A
+// -- submitProblem() (libs/experiment/onboarding-service.ts) rechaza
+// estos 3 campos con 400 si el flow_attempt real es de Segmento B.
+//
+// relationshipFocus/userEmotionalState/impactIntensity son exclusivos de
+// Segmento B (sustituyen al texto libre, encargo "eliminar free_text de
+// Segmento B") -- submitProblem() rechaza los 3 con 400 si el flow_attempt
+// real es de Segmento A. El segmento se deriva siempre del flow_attempt
+// persistido, nunca de un valor enviado por el cliente.
 export interface ProblemRequest {
   flowAttemptId: string;
   trigger: Trigger;
   freeText?: string;
   freeTextConsentGiven?: boolean;
   freeTextConsentVersion?: string;
+  relationshipFocus?: RelationshipFocus;
+  userEmotionalState?: UserEmotionalState;
+  impactIntensity?: ImpactIntensity;
 }
 
 export interface ProblemResponse {
@@ -299,7 +313,11 @@ export interface PrivacyDeleteWaitlistResponse {
 // habia nada que retirar.
 export interface PrivacyWithdrawFreeTextConsentResponse {
   ok: true;
-  outcome: "withdrawn" | "no_consent" | "already_withdrawn" | "already_expired";
+  // already_ended: el ciclo se cerro por retirada de la finalidad misma
+  // (close_reason='purpose_ended', Segmento B deja de recoger texto
+  // libre) -- no por el usuario ni por expiracion temporal. Ver
+  // supabase/migrations/20260113000000_segment_b_structured_context.sql.
+  outcome: "withdrawn" | "no_consent" | "already_withdrawn" | "already_expired" | "already_ended";
   previewsDeleted: number;
 }
 

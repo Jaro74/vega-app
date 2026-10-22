@@ -5,10 +5,11 @@ import { useState } from "react";
 import { FREE_TEXT_CONSENT_VERSION, FREE_TEXT_MAX_LENGTH } from "@/libs/experiment/constants";
 import { checkDirectIdentifiers } from "@/libs/experiment/direct-identifier-filter";
 import { TRIGGER_LABELS_A, TRIGGER_LABELS_B } from "@/libs/experiment/trigger-labels";
-import type { Segment, Trigger } from "@/types/experiment";
-import type { ApiErrorResponse, ProblemResponse } from "@/types/api";
+import type { ImpactIntensity, RelationshipFocus, Segment, Trigger, UserEmotionalState } from "@/types/experiment";
+import type { ApiErrorResponse, ProblemRequest, ProblemResponse } from "@/types/api";
 
 import type { CaptureEventFn } from "./capture";
+import StructuredContextFields from "./StructuredContextFields";
 
 const FREE_TEXT_NOTICE =
   "Este campo es opcional. Cuéntanos solo lo necesario para entender tu situación. Evita incluir datos de contacto, documentos de identidad, direcciones u otros datos que permitan identificar directamente a otras personas.";
@@ -29,10 +30,13 @@ interface ProblemStepProps {
   onComplete: () => void;
 }
 
-// Pantallas A1-A2 / B1-B2 (VEGA_Fase_4C): seleccion de trigger + texto
+// Pantallas A1-A2 / B1-B2 (VEGA_Fase_4C): seleccion de trigger + contexto
 // opcional. Un unico POST /api/problem persiste ambos campos juntos
 // (contrato Sprint 0), asi que el submit real ocurre al terminar la
-// pantalla de texto, no al elegir el trigger.
+// segunda pantalla, no al elegir el trigger. La segunda pantalla difiere
+// por segmento: A mantiene el texto libre (arquitectura v2 sin cambios);
+// B usa contexto estructurado cerrado (encargo "eliminar free_text de
+// Segmento B") -- nunca textarea, nunca "Other".
 const GENERIC_ERROR_MESSAGE = "No hemos podido guardar tu respuesta. Inténtalo de nuevo.";
 const MISSING_CONSENT_MESSAGE = "Para guardar este texto necesitamos tu consentimiento explícito — marca la casilla de arriba, o borra el texto si prefieres continuar sin él.";
 const FILTER_BLOCKED_MESSAGE = "Parece que este texto incluye un dato de contacto o un documento de identidad. Elimínalo antes de continuar — Vega no necesita ese tipo de información.";
@@ -48,8 +52,16 @@ function errorMessageFor(status: number, serverError: string): string {
 export default function ProblemStep({ segment, flowAttemptId, capture, onComplete }: ProblemStepProps) {
   const [subStep, setSubStep] = useState<"trigger" | "text">("trigger");
   const [trigger, setTrigger] = useState<Trigger | null>(null);
+
+  // Segmento A unicamente -- arquitectura v2 del free_text, sin cambios.
   const [freeText, setFreeText] = useState("");
   const [freeTextConsentChecked, setFreeTextConsentChecked] = useState(false);
+
+  // Segmento B unicamente -- contexto estructurado, nunca texto libre.
+  const [relationshipFocus, setRelationshipFocus] = useState<RelationshipFocus | null>(null);
+  const [userEmotionalState, setUserEmotionalState] = useState<UserEmotionalState | null>(null);
+  const [impactIntensity, setImpactIntensity] = useState<ImpactIntensity | null>(null);
+
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -77,13 +89,13 @@ export default function ProblemStep({ segment, flowAttemptId, capture, onComplet
 
   const handleSubmit = async () => {
     if (!trigger || submitting) return;
-    if (hasFreeText && !freeTextConsentChecked) return;
+    if (segment === "A" && hasFreeText && !freeTextConsentChecked) return;
 
     // Mismo modulo puro que usa el servidor (submitProblem, autoritativo
     // y obligatorio): esto es solo feedback inmediato, nunca la barrera
     // de seguridad real -- si rechaza, no se llega a hacer la peticion,
     // pero el checkbox/consentimiento ya marcado no se altera.
-    if (hasFreeText && checkDirectIdentifiers(trimmedFreeText).blocked) {
+    if (segment === "A" && hasFreeText && checkDirectIdentifiers(trimmedFreeText).blocked) {
       setError(FILTER_BLOCKED_MESSAGE);
       return;
     }
@@ -91,35 +103,49 @@ export default function ProblemStep({ segment, flowAttemptId, capture, onComplet
     setSubmitting(true);
     setError(null);
 
-    if (hasFreeText) {
+    if (segment === "A" && hasFreeText) {
       capture("problem_text_added", {
         problemTextProvided: true,
         characterCount: trimmedFreeText.length,
       });
     }
 
+    const requestBody: ProblemRequest =
+      segment === "A"
+        ? {
+            flowAttemptId,
+            trigger,
+            freeText: hasFreeText ? trimmedFreeText : undefined,
+            freeTextConsentGiven: hasFreeText ? true : undefined,
+            freeTextConsentVersion: hasFreeText ? FREE_TEXT_CONSENT_VERSION : undefined,
+          }
+        : {
+            flowAttemptId,
+            trigger,
+            relationshipFocus: relationshipFocus ?? undefined,
+            userEmotionalState: userEmotionalState ?? undefined,
+            impactIntensity: impactIntensity ?? undefined,
+          };
+
     try {
       const response = await fetch("/api/problem", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          flowAttemptId,
-          trigger,
-          freeText: hasFreeText ? trimmedFreeText : undefined,
-          freeTextConsentGiven: hasFreeText ? true : undefined,
-          freeTextConsentVersion: hasFreeText ? FREE_TEXT_CONSENT_VERSION : undefined,
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       if (!response.ok) {
-        const body = (await response.json()) as ApiErrorResponse;
-        setError(errorMessageFor(response.status, body.error));
+        const errorBody = (await response.json()) as ApiErrorResponse;
+        setError(errorMessageFor(response.status, errorBody.error));
         setSubmitting(false);
         return;
       }
 
       (await response.json()) as ProblemResponse;
-      capture("problem_complete", { trigger });
+      capture(
+        "problem_complete",
+        segment === "B" ? { trigger, relationshipFocus, userEmotionalState, impactIntensity } : { trigger }
+      );
       onComplete();
     } catch {
       setError(GENERIC_ERROR_MESSAGE);
@@ -152,11 +178,31 @@ export default function ProblemStep({ segment, flowAttemptId, capture, onComplet
     );
   }
 
+  if (segment === "B") {
+    return (
+      <div className="flex flex-col gap-6 w-full max-w-xl">
+        <h1 className="text-2xl font-bold text-center">Si quieres, cuéntanos un poco más (opcional)</h1>
+        <StructuredContextFields
+          relationshipFocus={relationshipFocus}
+          onRelationshipFocusChange={setRelationshipFocus}
+          userEmotionalState={userEmotionalState}
+          onUserEmotionalStateChange={setUserEmotionalState}
+          impactIntensity={impactIntensity}
+          onImpactIntensityChange={setImpactIntensity}
+        />
+
+        {error && <p className="text-error text-sm">{error}</p>}
+
+        <button type="button" className="btn btn-primary" disabled={submitting} onClick={handleSubmit}>
+          {submitting ? "Guardando..." : "Continuar"}
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-6 w-full max-w-xl">
-      <h1 className="text-2xl font-bold text-center">
-        {segment === "A" ? "Si quieres, cuéntale a Vega más (opcional)" : "Si quieres, cuéntale a Vega qué está ocurriendo (opcional)"}
-      </h1>
+      <h1 className="text-2xl font-bold text-center">Si quieres, cuéntale a Vega más (opcional)</h1>
       <p className="text-sm opacity-80">{FREE_TEXT_NOTICE}</p>
       <textarea
         className="textarea textarea-bordered w-full"

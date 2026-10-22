@@ -83,7 +83,15 @@ describe("canal de ejercicio de derechos", () => {
     it("borra el nucleo y la waitlist en la misma solicitud, antes de invalidar las cookies", async () => {
       const { jar, flowAttemptId } = await startTestAttempt("A");
       const repository = getExperimentRepository();
-      await repository.upsertProblemContext({ flowAttemptId, trigger: "career", freeText: "texto", textProvided: true });
+      await repository.upsertProblemContext({
+        flowAttemptId,
+        trigger: "career",
+        freeText: "texto",
+        textProvided: true,
+        relationshipFocus: null,
+        userEmotionalState: null,
+        impactIntensity: null,
+      });
       await repository.createWaitlistEntryIfNotExists({
         flowAttemptId,
         email: "persona@example.com",
@@ -178,7 +186,15 @@ describe("canal de ejercicio de derechos", () => {
     it("borra solo la waitlist y NO invalida la sesion", async () => {
       const { jar, flowAttemptId } = await startTestAttempt("A");
       const repository = getExperimentRepository();
-      await repository.upsertProblemContext({ flowAttemptId, trigger: "career", freeText: null, textProvided: false });
+      await repository.upsertProblemContext({
+        flowAttemptId,
+        trigger: "career",
+        freeText: null,
+        textProvided: false,
+        relationshipFocus: null,
+        userEmotionalState: null,
+        impactIntensity: null,
+      });
       await repository.createWaitlistEntryIfNotExists({
         flowAttemptId,
         email: "persona@example.com",

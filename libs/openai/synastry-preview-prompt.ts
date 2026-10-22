@@ -29,7 +29,8 @@ REGLAS OBLIGATORIAS:
 12. Responde siempre en el formato exacto de preview_v1: main_insight, evidence (exactamente 2), contextual_interpretation, limitation, open_question, safety_flags, unsupported_claims.
 13. Longitudes aproximadas: main_insight 40-60 palabras, contextual_interpretation 60-80 palabras. limitation es una sola frase. open_question es una sola pregunta.
 14. Si detectas que estas a punto de afirmar algo no respaldado por allowed_evidence, incluyelo en unsupported_claims en vez de afirmarlo como hecho.
-15. safety_flags y unsupported_claims deben quedar vacios salvo que exista un problema real: cualquier valor no vacio hace que la preview se descarte antes de mostrarse.`;
+15. safety_flags y unsupported_claims deben quedar vacios salvo que exista un problema real: cualquier valor no vacio hace que la preview se descarte antes de mostrarse.
+16. El contexto del usuario (user_context), cuando esté presente, describe el objetivo del usuario al pedir esta interpretación, cómo vive la relación, o una dinámica genérica entre ambos — nunca es un hecho, diagnóstico, estado de salud, orientación u otra categoría especial sobre la otra persona. No conviertas user_context en una afirmación sobre la Persona B, ni infieras de él ningún dato nuevo sobre ella.`;
 
 export interface SynastryPreviewEvidenceInput {
   id: string;

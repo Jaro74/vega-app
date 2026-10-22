@@ -33,7 +33,13 @@ import { UniqueConstraintViolationError } from "./types";
 // real) -- aqui no hace falta modelar los seq de los eventos
 // individuales, porque ninguna ruta de la aplicacion los lee jamas.
 interface FreeTextConsentCycle {
-  closeReason: "withdrawn" | "expired" | "erasure_requested" | null;
+  // purpose_ended: cierre historico por retirada de la finalidad misma
+  // (Segmento B deja de recoger texto libre), nunca por accion del
+  // usuario ni por expiracion temporal -- ver
+  // supabase/migrations/20260113000000_segment_b_structured_context.sql.
+  // No implica bloqueo (lifecycleState sigue "active"), a diferencia de
+  // erasure_requested.
+  closeReason: "withdrawn" | "expired" | "erasure_requested" | "purpose_ended" | null;
   consentVersion: string;
   lifecycleState: "active" | "blocked";
 }
@@ -172,6 +178,13 @@ export class InMemoryExperimentRepository implements ExperimentRepository {
       trigger: input.trigger,
       freeText: input.freeText,
       textProvided: input.textProvided,
+      // Sobreescritura total: nunca se conserva un valor de `existing`
+      // para estos 3 campos -- lo que no venga en `input` se persiste
+      // como null, igual que ya exige UpsertProblemContextInput al
+      // hacerlos obligatorios-con-null en vez de opcionales.
+      relationshipFocus: input.relationshipFocus,
+      userEmotionalState: input.userEmotionalState,
+      impactIntensity: input.impactIntensity,
       createdAt: existing?.createdAt ?? new Date().toISOString(),
     };
     this.problemContextByFlowAttempt.set(input.flowAttemptId, record);
@@ -235,6 +248,13 @@ export class InMemoryExperimentRepository implements ExperimentRepository {
       trigger: input.trigger,
       freeText: input.freeText,
       textProvided: true,
+      // Este camino es exclusivo de Segmento A (submitProblem nunca lo
+      // alcanza para B) -- se fuerzan a null explicitamente, nunca se
+      // preservan de `existing`, porque A no debe poder tener nunca
+      // contexto estructurado de B.
+      relationshipFocus: null,
+      userEmotionalState: null,
+      impactIntensity: null,
       createdAt: existing?.createdAt ?? new Date().toISOString(),
     };
     this.problemContextByFlowAttempt.set(input.flowAttemptId, record);
@@ -252,6 +272,10 @@ export class InMemoryExperimentRepository implements ExperimentRepository {
     if (!cycle) return { outcome: "no_consent", previewsDeleted: 0 };
     if (cycle.closeReason === "withdrawn") return { outcome: "already_withdrawn", previewsDeleted: 0 };
     if (cycle.closeReason === "expired") return { outcome: "already_expired", previewsDeleted: 0 };
+    // purpose_ended NO bloquea el ciclo (a diferencia de erasure_requested),
+    // asi que SI puede llegar aqui con lifecycleState todavia "active" --
+    // a diferencia de erasure_requested, esto no es un caso imposible.
+    if (cycle.closeReason === "purpose_ended") return { outcome: "already_ended", previewsDeleted: 0 };
     if (cycle.closeReason !== null) {
       // 'erasure_requested' es estructuralmente imposible aqui: ese
       // cierre bloquea el ciclo en el mismo paso (performDeleteAllOwnData),
@@ -291,6 +315,22 @@ export class InMemoryExperimentRepository implements ExperimentRepository {
     }
 
     this.problemContextByFlowAttempt.delete(flowAttemptId);
+  }
+
+  // Solo para tests: replica el cierre historico por purpose_ended
+  // (migracion de retirada de free_text en Segmento B,
+  // supabase/migrations/20260113000000_segment_b_structured_context.sql)
+  // sobre el ciclo abierto vigente. No bloquea el ciclo (lifecycleState
+  // sigue "active"), a diferencia de erasure_requested -- es
+  // deliberadamente un no-op si el ciclo ya esta cerrado (idempotente,
+  // nunca sobrescribe un cierre legitimo concurrente). Ninguna ruta de
+  // la aplicacion llega a esto, solo el codigo de test que instancia
+  // esta clase directamente.
+  async simulatePurposeEndedForTests(flowAttemptId: string): Promise<void> {
+    const cycle = this.latestActiveCycle(flowAttemptId);
+    if (cycle && cycle.closeReason === null) {
+      cycle.closeReason = "purpose_ended";
+    }
   }
 
   async upsertOwnBirthProfile(input: UpsertOwnBirthProfileInput): Promise<UserBirthProfileRecord> {

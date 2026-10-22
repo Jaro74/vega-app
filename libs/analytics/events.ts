@@ -1,5 +1,5 @@
 import { EXPERIMENT_ID, type ImplementedEventName } from "@/libs/experiment/constants";
-import type { PartnerPrecision, Segment, Trigger } from "@/types/experiment";
+import type { ImpactIntensity, PartnerPrecision, RelationshipFocus, Segment, Trigger, UserEmotionalState } from "@/types/experiment";
 import type { PreviewGenerationErrorType } from "@/types/preview";
 
 import { getExperimentReadyPromise } from "./experiment-ready";
@@ -37,6 +37,15 @@ export interface Sprint1EventProperties {
   // Sprint 3A: unica propiedad especifica de preview_generation_error
   // (VEGA_Fase_4C, bloque J). Nunca lleva contenido de la preview.
   errorType?: PreviewGenerationErrorType;
+  // Segmento B unicamente (encargo "eliminar free_text de Segmento B"):
+  // categoricos cerrados y un entero 1-5 sobre el propio usuario, nunca
+  // texto libre ni nada que describa a la Persona B -- mismo estatus que
+  // `trigger`/`partnerPrecision` de arriba, ya enviados a PostHog sin
+  // problema por la misma razon. Se adjuntan a problem_complete (no se
+  // crea un evento nuevo): ver ProblemStep.tsx.
+  relationshipFocus?: RelationshipFocus | null;
+  userEmotionalState?: UserEmotionalState | null;
+  impactIntensity?: ImpactIntensity | null;
 }
 
 // Lista blanca de claves que jamas deben viajar a PostHog (VEGA_Fase_4C,
