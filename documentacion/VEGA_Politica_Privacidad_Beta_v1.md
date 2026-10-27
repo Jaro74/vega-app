@@ -439,9 +439,9 @@ y validado con la suite completa en verde:
 - La identidad se verifica únicamente mediante la cookie de sesión
   firmada (`vega_session`), nunca mediante `vega_auid` ni ningún dato
   recibido en la petición.
-- Existe una página (`/mis-datos`) que ofrece esto de forma visual, pero
-  **todavía no está enlazada** desde esta política ni desde ningún pie
-  de página — solo accesible por URL directa.
+- Existe una página (`/mis-datos`) que ofrece esto de forma visual, y
+  **ya está enlazada** desde la sección 8 de `app/privacy-policy/page.tsx`
+  y desde `components/Footer.tsx` (actualizado 2026-10-27).
 - No existe ningún registro (logging) específico nuevo de estas
   solicitudes.
 

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 
 import { FREE_TEXT_CONSENT_VERSION, FREE_TEXT_MAX_LENGTH } from "@/libs/experiment/constants";
@@ -228,6 +229,13 @@ export default function ProblemStep({ segment, flowAttemptId, capture, onComplet
             <span className="text-sm">{FREE_TEXT_CONSENT_CHECKBOX_LABEL}</span>
           </label>
           <p className="text-xs opacity-70">{FREE_TEXT_WITHDRAWAL_HINT}</p>
+          <p className="text-xs opacity-70">
+            Puedes consultar la{" "}
+            <Link href="/privacy-policy" className="link link-primary">
+              Política de Privacidad
+            </Link>{" "}
+            antes de continuar.
+          </p>
         </div>
       )}
 

@@ -67,12 +67,22 @@ const PrivacyPolicy = () => {
             <h2 className="text-xl font-bold mb-2">2. Qué datos recogemos en esta fase</h2>
             <p>Durante esta fase, Vega puede tratar:</p>
             <ul className="list-disc pl-6 space-y-1">
-              <li>el contexto libre que el usuario escribe sobre su situación;</li>
+              <li>
+                en el segmento A, el contexto libre que el usuario escribe sobre su situación,
+                cuando decide añadirlo;
+              </li>
               <li>la fecha de nacimiento propia, y la hora de nacimiento cuando se conoce;</li>
               <li>el lugar de nacimiento propio y las coordenadas asociadas;</li>
               <li>
                 en el segmento B, los datos de nacimiento de la otra persona (fecha, y hora/lugar
                 si se conocen);
+              </li>
+              <li>
+                en el segmento B, un contexto estructurado y cerrado, opcional, sobre cómo el
+                usuario vive o quiere comprender la relación (foco de la relación, estado
+                emocional e intensidad del impacto, elegidos de opciones predefinidas); el
+                segmento B no admite texto libre ni que el usuario describa a la otra persona con
+                sus propias palabras;
               </li>
               <li>la evidencia astrológica derivada de esos datos;</li>
               <li>la dirección de correo electrónico, en el paso de lista de espera;</li>
@@ -124,11 +134,11 @@ const PrivacyPolicy = () => {
               experiencia de Vega y se conservan durante el tiempo indicado en esta política.
             </p>
 
-            <h3 className="text-lg font-semibold mt-6 mb-2">Texto libre opcional</h3>
+            <h3 className="text-lg font-semibold mt-6 mb-2">Texto libre opcional (Segmento A)</h3>
             <p>
-              Puedes añadir, de forma opcional, el contexto que consideres necesario para explicar
-              tu situación. El tratamiento de ese texto se basa en tu consentimiento (art. 6.1.a
-              RGPD).
+              En el Segmento A, puedes añadir, de forma opcional, el contexto que consideres
+              necesario para explicar tu situación. El tratamiento de ese texto se basa en tu
+              consentimiento (art. 6.1.a RGPD).
             </p>
             <p>
               Si decides incluir información especialmente sensible sobre ti, dicho tratamiento se
@@ -144,6 +154,27 @@ const PrivacyPolicy = () => {
               expresar libremente tus dudas, inquietudes y contexto personal. Únicamente aplicamos
               medidas de minimización para evitar que se introduzcan datos identificativos
               directos que Vega no necesita, como datos de contacto o documentos de identidad.
+            </p>
+            <p>
+              Este texto libre y este consentimiento son exclusivos del Segmento A. El Segmento B
+              no incluye ningún campo de texto libre ni admite este tipo de contenido.
+            </p>
+
+            <h3 className="text-lg font-semibold mt-6 mb-2">Contexto estructurado del Segmento B</h3>
+            <p>
+              En el Segmento B, Vega no recoge texto libre sobre la relación ni sobre la segunda
+              persona. En su lugar, el usuario puede seleccionar, de forma opcional, un contexto
+              estructurado y cerrado a partir de opciones predefinidas: en qué aspecto de la
+              relación quiere centrarse, cómo describe su propio estado emocional, y qué
+              intensidad de impacto le atribuye. Estas selecciones describen exclusivamente cómo
+              el usuario vive o quiere comprender la relación, y no se presentan ni se tratan como
+              hechos, diagnósticos, estados de salud, orientación u otras categorías especiales
+              sobre la segunda persona.
+            </p>
+            <p>
+              Este contexto estructurado se trata sobre la misma base que el motivo seleccionado
+              (interés legítimo, art. 6.1.f RGPD), al no tratarse de texto libre ni requerir el
+              consentimiento específico previsto para el Segmento A.
             </p>
 
             <p>
@@ -328,10 +359,14 @@ const PrivacyPolicy = () => {
                 flowAttemptId, ni la fecha, hora o lugar de nacimiento, ni coordenadas.
               </li>
               <li>
-                Sí se envían: la categoría del problema (trigger), el texto libre que el usuario
-                escribe sobre su situación, los indicadores de precisión/conocimiento de hora, y
-                la evidencia astrológica ya calculada por Vega/Railway (sin datos de nacimiento en
-                bruto).
+                Sí se envían: la categoría del problema (trigger), los indicadores de
+                precisión/conocimiento de hora, y la evidencia astrológica ya calculada por
+                Vega/Railway (sin datos de nacimiento en bruto). En el Segmento A, cuando existe,
+                también se envía el texto libre que el usuario escribe sobre su situación. En el
+                Segmento B no se envía ningún texto libre: en su lugar, cuando el usuario lo
+                selecciona, se envía el contexto estructurado cerrado descrito en la sección 4
+                (foco de la relación, estado emocional e intensidad del impacto) — nunca texto
+                libre sobre la segunda persona.
               </li>
               <li>
                 Esta configuración reduce la persistencia de OpenAI sobre estas llamadas
