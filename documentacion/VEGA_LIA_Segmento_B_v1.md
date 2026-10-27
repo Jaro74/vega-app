@@ -146,6 +146,16 @@ fila queda como registro histórico del análisis que motivó esa decisión; el 
 (datos estructurados de nacimiento, ponderación, art. 14) no se ve afectado y sigue vigente sin
 cambios.
 
+**Nota de cierre (2026-10-27):** una auditoría detectó que el código (`ProblemStep.tsx`) enviaba a
+PostHog, en el evento `problem_complete` de Segmento B, el contexto estructurado
+(`relationshipFocus`, `userEmotionalState`, `impactIntensity`) — contradiciendo la afirmación de la
+fila "PostHog" del bloque 1 ("nada de lo anterior; solo categorías técnicas del experimento"). Se
+resolvió por minimización, no por justificación: esas tres propiedades se retiraron del evento
+analítico y se añadieron explícitamente al guardarraíl de propiedades prohibidas
+(`libs/analytics/events.ts`), de modo que la afirmación original sobre PostHog vuelve a ser exacta.
+El contexto estructurado sigue existiendo en Vega (persistencia y envío a OpenAI), solo deja de
+salir hacia PostHog. No se modifica ninguna conclusión jurídica de este LIA.
+
 ---
 
 **Nota final:** este LIA no sustituye el análisis del art. 14 (bloque 5) ni las 6 preguntas abiertas de `VEGA_Segmento_B_Revision_Juridica_v1.md`, que siguen siendo responsabilidad de la revisión jurídica externa.

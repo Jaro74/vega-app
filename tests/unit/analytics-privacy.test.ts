@@ -38,6 +38,9 @@ describe("assertNoForbiddenProperties", () => {
     "freeText",
     "problemText",
     "partnerBirthDate",
+    "relationshipFocus",
+    "userEmotionalState",
+    "impactIntensity",
   ])("rechaza una propiedad prohibida: %s", (forbiddenKey) => {
     expect(() =>
       assertNoForbiddenProperties({ ...baseProperties, [forbiddenKey]: "valor-sensible" })
@@ -52,6 +55,29 @@ describe("assertNoForbiddenProperties", () => {
         email: "usuario@example.com",
       })
     ).toThrow(/no permitidas/);
+  });
+
+  // Regresion especifica: el contexto estructurado de Segmento B
+  // (decision de producto post-LIA) nunca debe llegar a PostHog, ni
+  // siquiera si problem_complete volviera a adjuntarlo por error.
+  it("captureExperimentEvent rechaza el contexto estructurado de Segmento B si problem_complete volviera a incluirlo", () => {
+    expect(() =>
+      captureExperimentEvent("problem_complete", {
+        ...baseProperties,
+        trigger: "career",
+        // @ts-expect-error solo para probar el guardarraíl en runtime -- TS ya
+        // rechaza el literal entero por la primera propiedad desconocida
+        relationshipFocus: "communication",
+        userEmotionalState: "confused",
+        impactIntensity: 3,
+      })
+    ).toThrow(/no permitidas/);
+  });
+
+  it("permite problem_complete con solo trigger (comportamiento sin cambios)", () => {
+    expect(() =>
+      assertNoForbiddenProperties({ ...baseProperties, trigger: "career" })
+    ).not.toThrow();
   });
 });
 

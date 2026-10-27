@@ -143,10 +143,13 @@ export default function ProblemStep({ segment, flowAttemptId, capture, onComplet
       }
 
       (await response.json()) as ProblemResponse;
-      capture(
-        "problem_complete",
-        segment === "B" ? { trigger, relationshipFocus, userEmotionalState, impactIntensity } : { trigger }
-      );
+      // El contexto estructurado de Segmento B (relationshipFocus/
+      // userEmotionalState/impactIntensity) no sale hacia PostHog -- la
+      // LIA de Segmento B asume que PostHog no recibe nada de esto
+      // (vease el guardarraiz de propiedades prohibidas en
+      // libs/analytics/events.ts). Solo se persiste via POST /api/problem,
+      // ya enviado mas arriba.
+      capture("problem_complete", { trigger });
       onComplete();
     } catch {
       setError(GENERIC_ERROR_MESSAGE);
